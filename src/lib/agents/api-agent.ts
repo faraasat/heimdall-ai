@@ -94,31 +94,89 @@ export class APIAgent extends BaseAgent {
     await this.log(context, 'Testing input validation', 'running')
 
     try {
-      // Test with malicious payloads
+      // Test with various malicious payloads
       const payloads = [
-        '"><script>alert(1)</script>',
-        "' OR '1'='1",
-        '../../../etc/passwd',
-        '${7*7}',
+        { payload: '"><script>alert(1)</script>', type: 'XSS', severity: 'high' as const },
+        { payload: "' OR '1'='1", type: 'SQL Injection', severity: 'critical' as const },
+        { payload: '../../../etc/passwd', type: 'Path Traversal', severity: 'high' as const },
+        { payload: '${7*7}', type: 'Template Injection', severity: 'high' as const },
+        { payload: '<xml><!ENTITY xxe SYSTEM "file:///etc/passwd">]><foo>&xxe;</foo>', type: 'XXE', severity: 'high' as const },
       ]
 
-      await this.reportFinding(context, {
-        title: 'Insufficient Input Validation',
-        description: 'API endpoints should validate and sanitize all input parameters to prevent injection attacks.',
-        severity: 'high',
-        affected_asset: target,
-        evidence: {
-          tested_payloads: payloads.length,
-          recommendation: 'Implement strict input validation and sanitization',
-        },
-        cwe_id: 'CWE-20',
-        cvss_score: 7.0,
-      })
+      let vulnerableToPayloads = []
 
-      await this.log(context, 'Input validation test completed', 'completed')
+      for (const test of payloads) {
+        try {
+          // Test as query parameter
+          const testUrl = `${target}${target.includes('?') ? '&' : '?'}test=${encodeURIComponent(test.payload)}`
+          
+          const response = await axios.get(testUrl, {
+            timeout: 5000,
+            validateStatus: () => true,
+          })
+
+          // Check if payload is reflected without encoding
+          if (response.data.toString().includes(test.payload)) {
+            vulnerableToPayloads.push(test.type)
+            
+            await this.reportFinding(context, {
+              title: `Insufficient Input Validation - ${test.type}`,
+              description: `API reflects ${test.type} payload without proper sanitization or encoding. This indicates insufficient input validation.`,
+              severity: test.severity,
+              affected_asset: target,
+              evidence: {
+                payload_type: test.type,
+                payload: test.payload,
+                reflected: true,
+              },
+              cwe_id: 'CWE-20',
+              cvss_score: test.severity === 'critical' ? 9.1 : 7.5,
+            })
+          }
+
+          // Also test as POST body if it's not the root
+          if (target !== target.split('?')[0]) {
+            try {
+              const postResponse = await axios.post(target.split('?')[0], {
+                test_param: test.payload,
+              }, {
+                timeout: 5000,
+                validateStatus: () => true,
+              })
+
+              if (postResponse.data.toString().includes(test.payload)) {
+                await this.reportFinding(context, {
+                  title: `POST Body Input Validation Issue - ${test.type}`,
+                  description: `API POST endpoint reflects malicious input without sanitization.`,
+                  severity: test.severity,
+                  affected_asset: target.split('?')[0],
+                  evidence: {
+                    method: 'POST',
+                    payload_type: test.type,
+                    reflected: true,
+                  },
+                  cwe_id: 'CWE-20',
+                })
+              }
+            } catch (error) {
+              // POST test failed, continue
+            }
+          }
+        } catch (error) {
+          // Request failed, continue with next payload
+        }
+      }
+
+      if (vulnerableToPayloads.length === 0) {
+        await this.log(context, 'No input validation issues detected with test payloads', 'completed')
+      } else {
+        await this.log(context, `Input validation issues found: ${vulnerableToPayloads.join(', ')}`, 'completed')
+      }
     } catch (error) {
       await this.log(context, `Input validation test error: ${error}`, 'error')
     }
+
+    await this.log(context, 'Input validation test completed', 'completed')
   }
 
   private async testAPIEndpoints(context: AgentContext, target: string) {

@@ -6,7 +6,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
-import { Shield, Activity, AlertTriangle, CheckCircle, Clock, ArrowLeft, Download, Zap, TrendingUp } from "lucide-react"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Shield, Activity, AlertTriangle, CheckCircle, Clock, ArrowLeft, Download, Zap, TrendingUp, FileText } from "lucide-react"
 import Link from "next/link"
 import type { Scan, Finding, AgentActivityLog } from "@/lib/types/database"
 
@@ -22,6 +23,38 @@ export default function ScanDetailPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [progress, setProgress] = useState(0)
+  const [generatingReport, setGeneratingReport] = useState(false)
+  const [reportType, setReportType] = useState<'executive' | 'technical' | 'compliance'>('executive')
+  const [showReportDialog, setShowReportDialog] = useState(false)
+
+  const handleGenerateReport = async (type: 'executive' | 'technical' | 'compliance') => {
+    setGeneratingReport(true)
+    try {
+      const response = await fetch(`/api/scans/${scanId}/report`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reportType: type }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to generate report')
+      }
+
+      const data = await response.json()
+      
+      // Download the report
+      if (data.fileUrl) {
+        window.open(data.fileUrl, '_blank')
+      }
+      
+      setShowReportDialog(false)
+    } catch (err) {
+      console.error('Report generation error:', err)
+      alert('Failed to generate report. Please try again.')
+    } finally {
+      setGeneratingReport(false)
+    }
+  }
 
   useEffect(() => {
     const fetchInitialData = async () => {
@@ -218,10 +251,18 @@ export default function ScanDetailPage() {
             </div>
             <div className="flex items-center gap-3">
               {getStatusBadge(scan.status)}
-              <Button variant="outline" size="sm" className="border-purple-500/50 text-purple-400 hover:bg-purple-500/10">
-                <Download className="h-4 w-4 mr-2" />
-                Export
-              </Button>
+              {scan.status === 'completed' && (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => setShowReportDialog(true)}
+                  disabled={generatingReport}
+                  className="border-purple-500/50 text-purple-400 hover:bg-purple-500/10"
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  {generatingReport ? 'Generating...' : 'Generate Report'}
+                </Button>
+              )}
             </div>
           </div>
           <div className="flex gap-2 mt-4">
@@ -434,6 +475,76 @@ export default function ScanDetailPage() {
           </Card>
         </div>
       </div>
+
+      {/* Report Generation Dialog */}
+      <Dialog open={showReportDialog} onOpenChange={setShowReportDialog}>
+        <DialogContent className="bg-gray-900 border-gray-700 text-white">
+          <DialogHeader>
+            <DialogTitle className="text-2xl bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+              Generate Security Report
+            </DialogTitle>
+            <DialogDescription className="text-gray-400">
+              Select the type of report you want to generate for this scan.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 mt-4">
+            <button
+              onClick={() => handleGenerateReport('executive')}
+              disabled={generatingReport}
+              className="w-full p-4 text-left border border-gray-700 rounded-lg hover:border-purple-500/50 hover:bg-purple-500/5 transition-all disabled:opacity-50"
+            >
+              <div className="flex items-start gap-3">
+                <FileText className="h-5 w-5 text-purple-400 mt-0.5" />
+                <div>
+                  <h3 className="font-semibold text-white">Executive Summary</h3>
+                  <p className="text-sm text-gray-400 mt-1">
+                    High-level overview for management with key metrics and top findings
+                  </p>
+                </div>
+              </div>
+            </button>
+
+            <button
+              onClick={() => handleGenerateReport('technical')}
+              disabled={generatingReport}
+              className="w-full p-4 text-left border border-gray-700 rounded-lg hover:border-blue-500/50 hover:bg-blue-500/5 transition-all disabled:opacity-50"
+            >
+              <div className="flex items-start gap-3">
+                <FileText className="h-5 w-5 text-blue-400 mt-0.5" />
+                <div>
+                  <h3 className="font-semibold text-white">Technical Report</h3>
+                  <p className="text-sm text-gray-400 mt-1">
+                    Detailed technical analysis with evidence and remediation steps
+                  </p>
+                </div>
+              </div>
+            </button>
+
+            <button
+              onClick={() => handleGenerateReport('compliance')}
+              disabled={generatingReport}
+              className="w-full p-4 text-left border border-gray-700 rounded-lg hover:border-green-500/50 hover:bg-green-500/5 transition-all disabled:opacity-50"
+            >
+              <div className="flex items-start gap-3">
+                <FileText className="h-5 w-5 text-green-400 mt-0.5" />
+                <div>
+                  <h3 className="font-semibold text-white">Compliance Report</h3>
+                  <p className="text-sm text-gray-400 mt-1">
+                    Compliance-focused report mapping to security frameworks
+                  </p>
+                </div>
+              </div>
+            </button>
+
+            {generatingReport && (
+              <div className="text-center py-4">
+                <div className="animate-spin rounded-full h-8 w-8 border-4 border-blue-500/20 border-t-blue-500 mx-auto mb-2"></div>
+                <p className="text-sm text-gray-400">Generating report...</p>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

@@ -1,8 +1,8 @@
 -- HeimdallAI Database Schema
 -- Installed via Supabase CLI migrations
 
--- Enable UUID extension
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+-- Enable pgcrypto extension for gen_random_uuid()
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 -- Users table (extended from Supabase Auth)
 CREATE TABLE IF NOT EXISTS public.users (
@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS public.users (
 
 -- Scans table
 CREATE TABLE IF NOT EXISTS public.scans (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
   target TEXT NOT NULL,
@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS public.scans (
 
 -- Findings table
 CREATE TABLE IF NOT EXISTS public.findings (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   scan_id UUID NOT NULL REFERENCES public.scans(id) ON DELETE CASCADE,
   severity TEXT NOT NULL CHECK (severity IN ('critical', 'high', 'medium', 'low', 'info')),
   title TEXT NOT NULL,
@@ -58,7 +58,7 @@ CREATE TABLE IF NOT EXISTS public.findings (
 
 -- Reports table
 CREATE TABLE IF NOT EXISTS public.reports (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   scan_id UUID REFERENCES public.scans(id) ON DELETE CASCADE,
   user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
   report_type TEXT NOT NULL CHECK (report_type IN ('executive', 'technical', 'compliance')),
@@ -70,7 +70,7 @@ CREATE TABLE IF NOT EXISTS public.reports (
 
 -- Agent Activity Logs table
 CREATE TABLE IF NOT EXISTS public.agent_activity_logs (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   scan_id UUID NOT NULL REFERENCES public.scans(id) ON DELETE CASCADE,
   agent_type TEXT NOT NULL,
   message TEXT NOT NULL,
@@ -81,7 +81,7 @@ CREATE TABLE IF NOT EXISTS public.agent_activity_logs (
 
 -- Chat Messages table
 CREATE TABLE IF NOT EXISTS public.chat_messages (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
   role TEXT NOT NULL CHECK (role IN ('user', 'assistant')),
   content TEXT NOT NULL,

@@ -1,5 +1,12 @@
 import { BaseAgent, AgentContext } from './base-agent'
 import axios from 'axios'
+import * as semver from 'semver'
+import * as fs from 'fs'
+import * as path from 'path'
+import { exec } from 'child_process'
+import { promisify } from 'util'
+
+const execAsync = promisify(exec)
 
 export class ConfigAgent extends BaseAgent {
   constructor() {
@@ -32,59 +39,143 @@ export class ConfigAgent extends BaseAgent {
     await this.log(context, 'Scanning package dependencies for vulnerabilities', 'running')
 
     try {
-      // Simulated dependency scan (in production, would integrate with npm audit, Snyk, etc.)
-      const vulnerableDependencies = [
-        {
-          package: 'lodash',
-          version: '4.17.15',
-          vulnerability: 'CVE-2020-8203',
-          severity: 'high',
-          fixed_in: '4.17.21',
-        },
-        {
-          package: 'axios',
-          version: '0.18.0',
-          vulnerability: 'CVE-2021-3749',
-          severity: 'medium',
-          fixed_in: '0.21.1',
-        },
-        {
-          package: 'express',
-          version: '4.16.0',
-          vulnerability: 'CVE-2022-24999',
-          severity: 'critical',
-          fixed_in: '4.17.3',
-        },
+      // Try to find package.json in workspace
+      const possiblePaths = [
+        process.cwd(),
+        path.join(process.cwd(), 'package.json'),
       ]
 
-      for (const dep of vulnerableDependencies) {
+      let packageJsonPath: string | null = null
+      for (const p of possiblePaths) {
+        const testPath = p.endsWith('package.json') ? p : path.join(p, 'package.json')
+        if (fs.existsSync(testPath)) {
+          packageJsonPath = testPath
+          break
+        }
+      }
+
+      if (!packageJsonPath) {
+        await this.log(context, 'No package.json found, skipping dependency scan', 'completed')
+        return
+      }
+
+      const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'))
+      const dependencies = { ...packageJson.dependencies, ...packageJson.devDependencies }
+
+      await this.log(context, `Found ${Object.keys(dependencies).length} dependencies to analyze`, 'running')
+
+      let outdatedCount = 0
+      let totalDeps = 0
+
+      // Check a subset of critical packages for latest versions
+      const criticalPackages = ['express', 'next', 'react', 'axios', 'jsonwebtoken', 'bcrypt', 'cookie-parser']
+      
+      for (const [depName, depVersion] of Object.entries(dependencies)) {
+        totalDeps++
+        
+        // Only check critical packages to avoid rate limiting
+        if (!criticalPackages.includes(depName) && Math.random() > 0.2) {
+          continue
+        }
+        
+        try {
+          const currentVersion = (depVersion as string).replace(/[^\d.]/g, '')
+          
+          if (!semver.valid(currentVersion)) {
+            continue
+          }
+
+          // Fetch latest version from npm registry
+          const registryUrl = `https://registry.npmjs.org/${depName}/latest`
+          const response = await axios.get(registryUrl, { timeout: 3000 })
+          const latestVersion = response.data.version
+
+          if (semver.lt(currentVersion, latestVersion)) {
+            outdatedCount++
+            
+            const versionDiff = semver.diff(currentVersion, latestVersion)
+            let severity: 'critical' | 'high' | 'medium' | 'low' = 'low'
+            
+            if (versionDiff === 'major') {
+              severity = 'high'
+            } else if (versionDiff === 'minor') {
+              severity = 'medium'
+            }
+
+            // Check if it's a critical package
+            const criticalPackages = ['express', 'next', 'react', 'axios', 'jsonwebtoken']
+            if (criticalPackages.includes(depName) && versionDiff === 'major') {
+              severity = 'critical'
+            }
+
+            await this.reportFinding(context, {
+              title: `Outdated Dependency: ${depName}`,
+              description: `Package ${depName} is outdated. Current: ${currentVersion}, Latest: ${latestVersion}. Update to receive security patches and bug fixes.`,
+              severity,
+              affected_asset: `package.json :: ${depName}`,
+              evidence: {
+                package: depName,
+                current_version: currentVersion,
+                latest_version: latestVersion,
+                version_diff: versionDiff,
+              },
+              cwe_id: 'CWE-1104',
+            })
+          }
+        } catch (error) {
+          // Failed to check this package, continue
+        }
+      }
+
+      // Try to run npm audit for vulnerability detection
+      try {
+        const { stdout } = await execAsync('npm audit --json', {
+          cwd: path.dirname(packageJsonPath),
+          timeout: 10000,
+        })
+        
+        const auditResult = JSON.parse(stdout)
+        
+        if (auditResult.metadata && auditResult.metadata.vulnerabilities) {
+          const vulns = auditResult.metadata.vulnerabilities
+          const total = vulns.critical + vulns.high + vulns.moderate + vulns.low
+          
+          if (total > 0) {
+            await this.reportFinding(context, {
+              title: 'Known Vulnerabilities in Dependencies',
+              description: `npm audit found ${total} known vulnerabilities: ${vulns.critical} critical, ${vulns.high} high, ${vulns.moderate} moderate, ${vulns.low} low. Run 'npm audit fix' to resolve.`,
+              severity: vulns.critical > 0 ? 'critical' : vulns.high > 0 ? 'high' : 'medium',
+              affected_asset: 'package.json',
+              evidence: {
+                total_vulnerabilities: total,
+                critical: vulns.critical,
+                high: vulns.high,
+                moderate: vulns.moderate,
+                low: vulns.low,
+              },
+              cwe_id: 'CWE-1104',
+            })
+          }
+        }
+      } catch (error) {
+        // npm audit failed or not available, continue
+        await this.log(context, 'npm audit not available or failed', 'completed')
+      }
+
+      if (outdatedCount > 0) {
         await this.reportFinding(context, {
-          title: `Vulnerable Dependency: ${dep.package}`,
-          description: `Package ${dep.package}@${dep.version} has known vulnerability ${dep.vulnerability}. Update to ${dep.fixed_in} or later.`,
-          severity: dep.severity as any,
-          affected_asset: `package.json :: ${dep.package}`,
+          title: 'Multiple Outdated Dependencies',
+          description: `${outdatedCount} packages are outdated and should be updated to receive security patches.`,
+          severity: 'medium',
+          affected_asset: 'package.json',
           evidence: {
-            package: dep.package,
-            current_version: dep.version,
-            vulnerability_id: dep.vulnerability,
-            fixed_version: dep.fixed_in,
+            total_dependencies: totalDeps,
+            outdated_count: outdatedCount,
           },
-          cwe_id: 'CWE-1104',
         })
       }
 
-      await this.reportFinding(context, {
-        title: 'Outdated Dependencies',
-        description: 'Multiple packages are significantly outdated and should be updated to receive security patches.',
-        severity: 'medium',
-        affected_asset: 'package.json',
-        evidence: {
-          total_dependencies: 45,
-          outdated_count: 12,
-        },
-      })
-
-      await this.log(context, 'Dependency scan completed', 'completed')
+      await this.log(context, `Dependency scan completed. ${outdatedCount} outdated packages found`, 'completed')
     } catch (error) {
       await this.log(context, `Dependency scan error: ${error}`, 'error')
     }

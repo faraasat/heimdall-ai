@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { getOrchestrator } from '@/lib/agents/orchestrator'
+import { getLangGraphOrchestrator } from '@/lib/agents/langgraph-orchestrator'
 import type { ScanType } from '@/lib/types/database'
  
 function isSchemaCacheMissingTableError(err: any): boolean {
@@ -150,7 +150,7 @@ async function executeScan(
   userId: string
 ) {
   const supabase = await createClient()
-  const orchestrator = getOrchestrator()
+  const orchestrator = getLangGraphOrchestrator()
 
   const startTime = Date.now()
 

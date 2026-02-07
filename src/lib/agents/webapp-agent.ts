@@ -112,29 +112,86 @@ export class WebAppAgent extends BaseAgent {
   private async testSQLInjection(context: AgentContext, url: string) {
     await this.log(context, 'Testing for SQL injection vulnerabilities', 'running')
 
-    // Common SQL injection payloads (passive detection)
-    const sqlPayloads = ["'", "1' OR '1'='1", "admin'--", "1; DROP TABLE users--"]
+    // SQL injection payloads and their error signatures
+    const sqlPayloads = [
+      { payload: "'", name: 'Single quote' },
+      { payload: "1' OR '1'='1", name: 'Classic OR bypass' },
+      { payload: "admin'--", name: 'Comment injection' },
+      { payload: "1' AND '1'='2", name: 'Boolean-based blind' },
+    ]
+
+    const errorSignatures = [
+      'sql syntax',
+      'mysql_fetch',
+      'postgresql',
+      'ora-',
+      'sqlite',
+      'sqlstate',
+      'unclosed quotation',
+      'quoted string not properly terminated',
+    ]
 
     try {
-      // In a real implementation, we would test query parameters
-      // For demo, we'll create a simulated finding
-      await this.reportFinding(context, {
-        title: 'Potential SQL Injection Endpoint',
-        description: 'Identified URL parameters that may be vulnerable to SQL injection. Manual verification recommended.',
-        severity: 'high',
-        affected_asset: url,
-        evidence: {
-          tested_payloads: sqlPayloads.length,
-          recommendation: 'Use parameterized queries and input validation',
-        },
-        cwe_id: 'CWE-89',
-        cvss_score: 7.5,
-      })
+      // Parse URL to get base and query params
+      const urlObj = new URL(url)
+      
+      // Only test if there are query parameters
+      if (urlObj.searchParams.toString()) {
+        let vulnerableParams = []
 
-      await this.log(context, 'SQL injection test completed', 'completed')
+        for (const [param, value] of urlObj.searchParams) {
+          for (const sqlTest of sqlPayloads) {
+            try {
+              const testUrl = new URL(url)
+              testUrl.searchParams.set(param, sqlTest.payload)
+
+              const response = await axios.get(testUrl.toString(), {
+                timeout: 10000,
+                validateStatus: () => true,
+              })
+
+              const responseText = response.data.toString().toLowerCase()
+              
+              // Check for SQL error messages
+              const hasErrorSignature = errorSignatures.some(sig => 
+                responseText.includes(sig.toLowerCase())
+              )
+
+              if (hasErrorSignature) {
+                vulnerableParams.push({ param, payload: sqlTest.name })
+                
+                await this.reportFinding(context, {
+                  title: `SQL Injection Vulnerability Detected`,
+                  description: `Parameter '${param}' appears vulnerable to SQL injection. The application returned SQL error messages when injecting: ${sqlTest.name}`,
+                  severity: 'critical',
+                  affected_asset: `${url}?${param}=...`,
+                  evidence: {
+                    parameter: param,
+                    payload: sqlTest.payload,
+                    detection_method: 'Error-based detection',
+                  },
+                  cwe_id: 'CWE-89',
+                  cvss_score: 9.1,
+                })
+                break // Found vulnerability in this param, move to next
+              }
+            } catch (error) {
+              // Request failed, continue
+            }
+          }
+        }
+
+        if (vulnerableParams.length === 0) {
+          await this.log(context, 'No SQL injection vulnerabilities detected in query parameters', 'completed')
+        }
+      } else {
+        await this.log(context, 'No query parameters found to test for SQL injection', 'completed')
+      }
     } catch (error) {
       await this.log(context, `SQL injection test error: ${error}`, 'error')
     }
+
+    await this.log(context, 'SQL injection test completed', 'completed')
   }
 
   private async testXSS(context: AgentContext, url: string) {
@@ -149,27 +206,89 @@ export class WebAppAgent extends BaseAgent {
       const $ = cheerio.load(response.data)
 
       // Look for potential XSS vectors
-      const inputFields = $('input, textarea').length
-      const forms = $('form').length
+      const inputFields = $('input, textarea')
+      const forms = $('form')
+      let vulnerabilities = []
 
-      if (inputFields > 0) {
-        await this.reportFinding(context, {
-          title: 'Potential XSS Vulnerability in Input Fields',
-          description: `Found ${inputFields} input fields that should be tested for XSS. Ensure all user input is properly sanitized.`,
-          severity: 'medium',
-          affected_asset: url,
-          evidence: {
-            input_fields: inputFields,
-            forms: forms,
-          },
-          cwe_id: 'CWE-79',
-        })
+      // Check if user input is reflected in the page
+      const urlObj = new URL(url)
+      if (urlObj.searchParams.toString()) {
+        // Test XSS payloads
+        const xssPayloads = [
+          '<script>alert(1)</script>',
+          '"><script>alert(1)</script>',
+          "'><script>alert(1)</script>",
+          '<img src=x onerror=alert(1)>',
+        ]
+
+        for (const [param, value] of urlObj.searchParams) {
+          for (const payload of xssPayloads) {
+            try {
+              const testUrl = new URL(url)
+              testUrl.searchParams.set(param, payload)
+
+              const testResponse = await axios.get(testUrl.toString(), {
+                timeout: 10000,
+                validateStatus: () => true,
+              })
+
+              // Check if payload is reflected unescaped
+              if (testResponse.data.includes(payload)) {
+                vulnerabilities.push(param)
+                
+                await this.reportFinding(context, {
+                  title: `Reflected XSS Vulnerability in ${param}`,
+                  description: `Parameter '${param}' reflects user input without proper sanitization. Successfully injected: ${payload}`,
+                  severity: 'high',
+                  affected_asset: `${url}?${param}=...`,
+                  evidence: {
+                    parameter: param,
+                    payload: payload,
+                    reflected: true,
+                  },
+                  cwe_id: 'CWE-79',
+                  cvss_score: 7.2,
+                })
+                break // Found vulnerability, move to next param
+              }
+            } catch (error) {
+              // Request failed, continue
+            }
+          }
+        }
       }
 
-      await this.log(context, 'XSS test completed', 'completed')
+      // Check for unsafe inline JavaScript in HTML
+      const inlineScripts = $('script:not([src])')
+      if (inlineScripts.length > 0) {
+        const hasUserInput = inlineScripts.toArray().some((script) => {
+          const content = $(script).html() || ''
+          return content.includes('innerHTML') || content.includes('document.write')
+        })
+
+        if (hasUserInput) {
+          await this.reportFinding(context, {
+            title: 'Potentially Unsafe DOM Manipulation',
+            description: `Found ${inlineScripts.length} inline scripts using potentially unsafe DOM manipulation methods like innerHTML or document.write`,
+            severity: 'medium',
+            affected_asset: url,
+            evidence: {
+              inline_scripts: inlineScripts.length,
+              methods_found: ['innerHTML', 'document.write'],
+            },
+            cwe_id: 'CWE-79',
+          })
+        }
+      }
+
+      if (vulnerabilities.length === 0 && inputFields.length > 0) {
+        await this.log(context, `Found ${inputFields.length} input fields. No XSS vulnerabilities detected in URL parameters`, 'completed')
+      }
     } catch (error) {
       await this.log(context, `XSS test error: ${error}`, 'error')
     }
+
+    await this.log(context, 'XSS test completed', 'completed')
   }
 
   private async testCSRF(context: AgentContext, url: string) {

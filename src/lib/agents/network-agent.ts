@@ -1,6 +1,8 @@
 import { BaseAgent, AgentContext } from './base-agent'
 import * as dns from 'dns'
 import { promisify } from 'util'
+import * as tcpPortUsed from 'tcp-port-used'
+import axios from 'axios'
 
 const resolveDns = promisify(dns.resolve)
 
@@ -77,67 +79,121 @@ export class NetworkAgent extends BaseAgent {
   private async performPortScanning(context: AgentContext, target: string) {
     await this.log(context, 'Scanning common ports', 'running')
 
-    // Simulated port scan results (in production, would use actual port scanning)
+    // Real port scan of common ports
     const commonPorts = [
-      { port: 80, service: 'HTTP', state: 'open' },
-      { port: 443, service: 'HTTPS', state: 'open' },
-      { port: 22, service: 'SSH', state: 'open' },
-      { port: 3306, service: 'MySQL', state: 'open' },
+      { port: 21, service: 'FTP' },
+      { port: 22, service: 'SSH' },
+      { port: 23, service: 'Telnet' },
+      { port: 25, service: 'SMTP' },
+      { port: 80, service: 'HTTP' },
+      { port: 443, service: 'HTTPS' },
+      { port: 3306, service: 'MySQL' },
+      { port: 5432, service: 'PostgreSQL' },
+      { port: 6379, service: 'Redis' },
+      { port: 27017, service: 'MongoDB' },
     ]
 
-    for (const portInfo of commonPorts) {
-      await this.log(context, `Port ${portInfo.port}/${portInfo.service} is ${portInfo.state}`, 'completed')
+    const openPorts = []
 
-      // Report open ports as findings
-      if (portInfo.state === 'open') {
-        const severity = portInfo.port === 3306 ? 'high' : 'medium'
+    for (const portInfo of commonPorts) {
+      try {
+        const isOpen = await tcpPortUsed.check(portInfo.port, target)
         
-        await this.reportFinding(context, {
-          title: `Open ${portInfo.service} Port (${portInfo.port})`,
-          description: `Port ${portInfo.port} running ${portInfo.service} service is publicly accessible`,
-          severity,
-          affected_asset: `${target}:${portInfo.port}`,
-          evidence: {
-            port: portInfo.port,
-            service: portInfo.service,
-            state: portInfo.state,
-          },
-          cwe_id: portInfo.port === 3306 ? 'CWE-200' : undefined,
-        })
+        if (isOpen) {
+          openPorts.push(portInfo)
+          await this.log(context, `Port ${portInfo.port}/${portInfo.service} is open`, 'completed')
+
+          // Determine severity based on port type
+          let severity: 'critical' | 'high' | 'medium' | 'low' = 'medium'
+          if ([3306, 5432, 6379, 27017].includes(portInfo.port)) {
+            severity = 'high' // Database ports
+          } else if (portInfo.port === 23) {
+            severity = 'critical' // Telnet
+          } else if ([21, 25].includes(portInfo.port)) {
+            severity = 'high' // Unencrypted protocols
+          }
+          
+          await this.reportFinding(context, {
+            title: `Open ${portInfo.service} Port (${portInfo.port})`,
+            description: `Port ${portInfo.port} running ${portInfo.service} service is publicly accessible${severity === 'high' || severity === 'critical' ? ' and may expose sensitive data' : ''}`,
+            severity,
+            affected_asset: `${target}:${portInfo.port}`,
+            evidence: {
+              port: portInfo.port,
+              service: portInfo.service,
+              state: 'open',
+            },
+            cwe_id: [3306, 5432, 6379, 27017].includes(portInfo.port) ? 'CWE-200' : undefined,
+          })
+        }
+      } catch (error) {
+        // Port is closed or unreachable, continue
       }
     }
+
+    await this.log(context, `Found ${openPorts.length} open ports`, 'completed')
   }
 
   private async performServiceDetection(context: AgentContext, target: string) {
     await this.log(context, 'Detecting service versions', 'running')
 
-    // Simulated service detection (in production, would detect actual versions)
-    const services = [
-      {
-        service: 'SSH',
-        version: 'OpenSSH 7.4',
-        vulnerability: 'Outdated SSH version with known vulnerabilities',
-        severity: 'medium' as const,
-      },
-      {
-        service: 'Apache',
-        version: '2.4.29',
-        vulnerability: 'Apache version may have known security issues',
-        severity: 'low' as const,
-      },
-    ]
+    // Real service detection via HTTP headers
+    try {
+      const protocols = ['https', 'http']
+      
+      for (const protocol of protocols) {
+        try {
+          const response = await axios.head(`${protocol}://${target}`, {
+            timeout: 5000,
+            validateStatus: () => true,
+          })
 
-    for (const svc of services) {
-      await this.reportFinding(context, {
-        title: `Outdated ${svc.service} Version`,
-        description: svc.vulnerability,
-        severity: svc.severity,
-        affected_asset: target,
-        evidence: {
-          service: svc.service,
-          version: svc.version,
-        },
-      })
+          // Check for server header
+          const serverHeader = response.headers['server']
+          const poweredBy = response.headers['x-powered-by']
+
+          if (serverHeader) {
+            await this.log(context, `Server: ${serverHeader}`, 'completed')
+            
+            // Check for version disclosure
+            if (/\d+\.\d+/.test(serverHeader)) {
+              await this.reportFinding(context, {
+                title: 'Server Version Disclosure',
+                description: `Server header reveals version information: ${serverHeader}. This helps attackers identify vulnerabilities.`,
+                severity: 'low',
+                affected_asset: target,
+                evidence: {
+                  header: 'Server',
+                  value: serverHeader,
+                },
+                cwe_id: 'CWE-200',
+              })
+            }
+          }
+
+          if (poweredBy) {
+            await this.log(context, `X-Powered-By: ${poweredBy}`, 'completed')
+            
+            await this.reportFinding(context, {
+              title: 'Technology Stack Disclosure',
+              description: `X-Powered-By header reveals technology: ${poweredBy}. Remove this header to reduce information leakage.`,
+              severity: 'low',
+              affected_asset: target,
+              evidence: {
+                header: 'X-Powered-By',
+                value: poweredBy,
+              },
+              cwe_id: 'CWE-200',
+            })
+          }
+
+          break // Successfully detected, no need to try other protocol
+        } catch (error) {
+          continue // Try next protocol
+        }
+      }
+    } catch (error) {
+      await this.log(context, `Service detection error: ${error}`, 'error')
     }
 
     await this.log(context, 'Service detection completed', 'completed')
