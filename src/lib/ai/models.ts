@@ -57,7 +57,7 @@ export function getGeminiModel(options: { temperature?: number; modelName?: stri
 
   return new ChatGoogleGenerativeAI({
     apiKey,
-    model: options.modelName || "gemini-1.5-flash-latest",
+    model: options.modelName || "models/gemini-1.5-pro",
     temperature: options.temperature ?? 0.2,
     maxOutputTokens: 2048,
   })

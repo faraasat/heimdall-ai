@@ -36,6 +36,12 @@ export class NetworkAgent extends BaseAgent {
       // Sitemap Analysis
       await this.analyzeSitemap(context, fullTarget)
 
+      // Email Harvesting
+      await this.harvestEmails(context, fullTarget)
+
+      // Technology Fingerprinting
+      await this.fingerprintTechnology(context, fullTarget)
+
       await this.log(context, 'Network penetration test completed', 'completed')
     } catch (error) {
       await this.log(context, `Network test error: ${error}`, 'error', { error: String(error) })
@@ -322,6 +328,103 @@ export class NetworkAgent extends BaseAgent {
       }
     } catch (error) {
       await this.log(context, 'No sitemap.xml found or error analyzing it', 'completed')
+    }
+  }
+
+  private async harvestEmails(context: AgentContext, target: string) {
+    await this.log(context, 'Harvesting email addresses from public pages', 'running')
+
+    try {
+      const response = await axios.get(target, {
+        timeout: 10000,
+        validateStatus: () => true
+      })
+
+      // Email regex pattern
+      const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g
+      const emails = response.data.match(emailRegex) || []
+      
+      // Remove duplicates
+      const uniqueEmails = [...new Set(emails)]
+
+      if (uniqueEmails.length > 0) {
+        await this.reportFinding(context, {
+          title: 'Email Addresses Disclosed',
+          description: `Found ${uniqueEmails.length} email addresses in the page content. This information can be used for phishing attacks or social engineering.`,
+          severity: 'low',
+          affected_asset: target,
+          evidence: {
+            emails: uniqueEmails.slice(0, 10), // Limit to first 10
+            total_count: uniqueEmails.length
+          },
+          cwe_id: 'CWE-200'
+        })
+
+        await this.log(context, `Found ${uniqueEmails.length} email addresses`, 'completed')
+      }
+    } catch (error) {
+      await this.log(context, 'Email harvesting error or no emails found', 'completed')
+    }
+  }
+
+  private async fingerprintTechnology(context: AgentContext, target: string) {
+    await this.log(context, 'Fingerprinting web technologies and frameworks', 'running')
+
+    try {
+      const response = await axios.get(target, {
+        timeout: 10000,
+        validateStatus: () => true
+      })
+
+      const detectedTech = []
+      const headers = response.headers
+      const html = response.data.toString()
+
+      // Framework detection patterns
+      const patterns = [
+        { name: 'WordPress', pattern: /wp-content|wp-includes/i, severity: 'medium' },
+        { name: 'Drupal', pattern: /drupal|\/sites\/default/i, severity: 'medium' },
+        { name: 'Joomla', pattern: /\/components\/com_/i, severity: 'medium' },
+        { name: 'React', pattern: /react|__REACT/i, severity: 'info' },
+        { name: 'Vue.js', pattern: /vue\.js|__VUE__/i, severity: 'info' },
+        { name: 'Angular', pattern: /ng-|angular/i, severity: 'info' },
+        { name: 'jQuery', pattern: /jquery/i, severity: 'info' },
+        { name: 'Bootstrap', pattern: /bootstrap/i, severity: 'info' },
+        { name: 'Next.js', pattern: /_next\/|__NEXT_DATA__/i, severity: 'info' },
+        { name: 'Laravel', pattern: /laravel_session|csrf-token/i, severity: 'medium' },
+        { name: 'Django', pattern: /csrfmiddlewaretoken|django/i, severity: 'medium' },
+        { name: 'Express', pattern: /express|X-Powered-By.*Express/i, severity: 'medium' },
+      ]
+
+      for (const tech of patterns) {
+        if (tech.pattern.test(html) || Object.values(headers).some(h => tech.pattern.test(String(h)))) {
+          detectedTech.push(tech.name)
+          
+          await this.reportFinding(context, {
+            title: `${tech.name} Framework Detected`,
+            description: `Web application is using ${tech.name}. Ensure it's updated to the latest version to prevent known vulnerabilities.`,
+            severity: tech.severity as 'critical' | 'high' | 'medium' | 'low' | 'info',
+            affected_asset: target,
+            evidence: {
+              technology: tech.name,
+              detection_method: 'Pattern matching in HTML/headers'
+            },
+            cwe_id: 'CWE-200'
+          })
+        }
+      }
+
+      // Check for outdated libraries via script tags
+      const scriptTags= html.match(/<script[^>]+src=["']([^"']+)["']/gi) || []
+      const versionedScripts = scriptTags.filter((tag: string) => /\d+\.\d+\.\d+/.test(tag))
+
+      if (versionedScripts.length > 0) {
+        await this.log(context, `Found ${versionedScripts.length} versioned JavaScript libraries`, 'completed')
+      }
+
+      await this.log(context, `Technology fingerprinting completed. Detected ${detectedTech.length} technologies`, 'completed')
+    } catch (error) {
+      await this.log(context, 'Technology fingerprinting error', 'completed')
     }
   }
 }

