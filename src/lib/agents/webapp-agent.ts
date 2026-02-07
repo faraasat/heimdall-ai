@@ -1,6 +1,7 @@
 import { BaseAgent, AgentContext } from './base-agent'
 import axios from 'axios'
 import * as cheerio from 'cheerio'
+import { SQL_INJECTION_PAYLOADS, SQL_ERROR_SIGNATURES, XSS_PAYLOADS, SENSITIVE_FILES, HTTP_METHODS_TO_TEST } from './payloads'
 
 export class WebAppAgent extends BaseAgent {
   constructor() {
@@ -32,16 +33,50 @@ export class WebAppAgent extends BaseAgent {
   }
 
   private async testSecurityHeaders(context: AgentContext, url: string) {
-    await this.log(context, 'Checking security headers', 'running')
+    await this.log(context, 'Checking security headers and SSL/TLS configuration', 'running')
 
     try {
       const response = await axios.head(url, {
         timeout: 10000,
         validateStatus: () => true,
+        maxRedirects: 0, // Don't follow redirects to test original response
       })
 
       const headers = response.headers
       const missingHeaders = []
+
+      // Check TLS version and certificate (if HTTPS)
+      if (url.startsWith('https://')) {
+        try {
+          const tlsResponse = await axios.get(url, {
+            timeout: 5000,
+            validateStatus: () => true,
+            httpsAgent: new (require('https')).Agent({
+              rejectUnauthorized: false, // Allow self-signed for testing
+            }),
+          })
+          
+          // Check for weak TLS
+          const protocol = tlsResponse.request?.socket?.getProtocol?.()
+          if (protocol && (protocol.includes('TLSv1.0') || protocol.includes('TLSv1.1'))) {
+            await this.reportFinding(context, {
+              title: 'Weak TLS Version Detected',
+              description: `Server supports ${protocol} which has known vulnerabilities. Update to TLS 1.2 or 1.3.`,
+              severity: 'high',
+              affected_asset: url,
+              evidence: {
+                protocol: protocol,
+                recommendation: 'Disable TLSv1.0 and TLSv1.1, enforce TLS 1.2+',
+              },
+              cwe_id: 'CWE-327',
+            })
+          }
+        } catch (tlsError) {
+          // TLS check failed, but don't fail the whole test
+        }
+      }
+
+      // Enhanced header checks with more details
 
       // Check for important security headers
       if (!headers['x-frame-options']) {
@@ -112,24 +147,9 @@ export class WebAppAgent extends BaseAgent {
   private async testSQLInjection(context: AgentContext, url: string) {
     await this.log(context, 'Testing for SQL injection vulnerabilities', 'running')
 
-    // SQL injection payloads and their error signatures
-    const sqlPayloads = [
-      { payload: "'", name: 'Single quote' },
-      { payload: "1' OR '1'='1", name: 'Classic OR bypass' },
-      { payload: "admin'--", name: 'Comment injection' },
-      { payload: "1' AND '1'='2", name: 'Boolean-based blind' },
-    ]
-
-    const errorSignatures = [
-      'sql syntax',
-      'mysql_fetch',
-      'postgresql',
-      'ora-',
-      'sqlite',
-      'sqlstate',
-      'unclosed quotation',
-      'quoted string not properly terminated',
-    ]
+    // Use comprehensive payload list
+    const sqlPayloads = SQL_INJECTION_PAYLOADS.slice(0, 8) // Use first 8 for speed
+    const errorSignatures = SQL_ERROR_SIGNATURES
 
     try {
       // Parse URL to get base and query params
@@ -140,10 +160,10 @@ export class WebAppAgent extends BaseAgent {
         let vulnerableParams = []
 
         for (const [param, value] of urlObj.searchParams) {
-          for (const sqlTest of sqlPayloads) {
+          for (const payload of sqlPayloads) {
             try {
               const testUrl = new URL(url)
-              testUrl.searchParams.set(param, sqlTest.payload)
+              testUrl.searchParams.set(param, payload)
 
               const response = await axios.get(testUrl.toString(), {
                 timeout: 10000,
@@ -158,17 +178,18 @@ export class WebAppAgent extends BaseAgent {
               )
 
               if (hasErrorSignature) {
-                vulnerableParams.push({ param, payload: sqlTest.name })
+                vulnerableParams.push({ param, payload })
                 
                 await this.reportFinding(context, {
                   title: `SQL Injection Vulnerability Detected`,
-                  description: `Parameter '${param}' appears vulnerable to SQL injection. The application returned SQL error messages when injecting: ${sqlTest.name}`,
+                  description: `Parameter '${param}' appears vulnerable to SQL injection. The application returned SQL error messages when injecting: ${payload}`,
                   severity: 'critical',
                   affected_asset: `${url}?${param}=...`,
                   evidence: {
                     parameter: param,
-                    payload: sqlTest.payload,
+                    payload: payload,
                     detection_method: 'Error-based detection',
+                    matched_signatures: errorSignatures.filter(sig => responseText.includes(sig.toLowerCase())),
                   },
                   cwe_id: 'CWE-89',
                   cvss_score: 9.1,
@@ -213,13 +234,8 @@ export class WebAppAgent extends BaseAgent {
       // Check if user input is reflected in the page
       const urlObj = new URL(url)
       if (urlObj.searchParams.toString()) {
-        // Test XSS payloads
-        const xssPayloads = [
-          '<script>alert(1)</script>',
-          '"><script>alert(1)</script>',
-          "'><script>alert(1)</script>",
-          '<img src=x onerror=alert(1)>',
-        ]
+        // Use comprehensive XSS payloads
+        const xssPayloads = XSS_PAYLOADS.slice(0, 8) // Test first 8 for speed
 
         for (const [param, value] of urlObj.searchParams) {
           for (const payload of xssPayloads) {
@@ -245,6 +261,7 @@ export class WebAppAgent extends BaseAgent {
                     parameter: param,
                     payload: payload,
                     reflected: true,
+                    payload_type: payload.includes('script') ? 'Script injection' : 'Event handler injection',
                   },
                   cwe_id: 'CWE-79',
                   cvss_score: 7.2,

@@ -135,9 +135,9 @@ export class NetworkAgent extends BaseAgent {
   }
 
   private async performServiceDetection(context: AgentContext, target: string) {
-    await this.log(context, 'Detecting service versions', 'running')
+    await this.log(context, 'Detecting service versions and security configurations', 'running')
 
-    // Real service detection via HTTP headers
+    // Real service detection via HTTP headers and banner grabbing
     try {
       const protocols = ['https', 'http']
       
