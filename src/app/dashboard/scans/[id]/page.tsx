@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Shield, Activity, AlertTriangle, CheckCircle, Clock, ArrowLeft, Download, Zap, TrendingUp, FileText } from "lucide-react"
 import Link from "next/link"
 import type { Scan, Finding, AgentActivityLog } from "@/lib/types/database"
+import ScanChat from "@/components/scans/ScanChat"
 
 export default function ScanDetailPage() {
   const params = useParams()
@@ -26,6 +27,53 @@ export default function ScanDetailPage() {
   const [generatingReport, setGeneratingReport] = useState(false)
   const [reportType, setReportType] = useState<'executive' | 'technical' | 'compliance'>('executive')
   const [showReportDialog, setShowReportDialog] = useState(false)
+  const [scanMetrics, setScanMetrics] = useState<{
+    startTime: string | null
+    endTime: string | null
+    duration: number | null
+    avgTimePerFinding: number | null
+    agentsCompleted: number
+    totalAgents: number
+  }>({ startTime: null, endTime: null, duration: null, avgTimePerFinding: null, agentsCompleted: 0, totalAgents: 0 })
+
+  const calculateMetrics = (currentScan: Scan, currentLogs: AgentActivityLog[], currentFindings: Finding[]) => {
+    const startTime = currentScan.created_at
+    const endTime = currentScan.updated_at
+    
+    let duration = null
+    if (startTime && endTime) {
+      duration = new Date(endTime).getTime() - new Date(startTime).getTime()
+    }
+
+    const avgTimePerFinding = currentFindings.length > 0 && duration 
+      ? Math.round(duration / currentFindings.length / 1000) // seconds per finding
+      : null
+
+    const agentLogs = currentLogs.filter(l => l.agent_type !== 'Orchestrator')
+    const completedLogs = agentLogs.filter(l => l.status === 'completed' || l.message.includes('completed'))
+    const agentsCompleted = new Set(completedLogs.map(l => l.agent_type)).size
+    const totalAgents = currentScan.scan_types?.length || 1
+
+    setScanMetrics({
+      startTime,
+      endTime,
+      duration,
+      avgTimePerFinding,
+      agentsCompleted,
+      totalAgents
+    })
+  }
+
+  const formatDuration = (ms: number | null) => {
+    if (!ms) return 'N/A'
+    const seconds = Math.floor(ms / 1000)
+    const minutes = Math.floor(seconds / 60)
+    const hours = Math.floor(minutes / 60)
+    
+    if (hours > 0) return `${hours}h ${minutes % 60}m ${seconds % 60}s`
+    if (minutes > 0) return `${minutes}m ${seconds % 60}s`
+    return `${seconds}s`
+  }
 
   const handleGenerateReport = async (type: 'executive' | 'technical' | 'compliance') => {
     setGeneratingReport(true)
@@ -69,11 +117,18 @@ export default function ScanDetailPage() {
         setLogs(data.logs || [])
         setLoading(false)
 
-        // Calculate initial progress
+        // Calculate metrics
+        calculateMetrics(data.scan, data.logs || [], data.findings || [])
+
+        // Calculate initial progress based on real data
         if (data.scan.status === 'completed') {
           setProgress(100)
         } else if (data.scan.status === 'running') {
-          setProgress(50)
+          const agentLogs = (data.logs || []).filter((l: any) => l.agent_type !== 'Orchestrator')
+          const completedAgents = agentLogs.filter((l: any) => l.status === 'completed').length
+          const totalAgents = data.scan.scan_types?.length || 1
+          const calculatedProgress = Math.min(Math.round((completedAgents / totalAgents) * 100), 95)
+          setProgress(calculatedProgress)
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'An error occurred')
@@ -95,16 +150,25 @@ export default function ScanDetailPage() {
           if (data.type === 'scan') {
             setScan(data.data)
             
-            // Update progress based on status
+            // Calculate real progress based on agent completion
             if (data.data.status === 'completed') {
               setProgress(100)
             } else if (data.data.status === 'running') {
-              setProgress((prev) => Math.min(prev + 5, 95))
+              // Progress based on completed agents (logs received already)
+              const agentLogs = logs.filter((l: any) => l.agent_type !== 'Orchestrator')
+              const completedAgents = agentLogs.filter((l: any) => l.message.includes('completed')).length
+              const totalAgents = data.data.scan_types?.length || 1
+              const calculatedProgress = Math.min(Math.round((completedAgents / totalAgents) * 100), 95)
+              setProgress(calculatedProgress)
             }
           } else if (data.type === 'logs') {
             setLogs(data.data)
+            // Update metrics when new logs arrive
+            if (scan) calculateMetrics(scan, data.data, findings)
           } else if (data.type === 'findings') {
             setFindings(data.data)
+            // Update metrics when new findings arrive
+            if (scan) calculateMetrics(scan, logs, data.data)
           } else if (data.type === 'done') {
             eventSource.close()
           }
@@ -284,7 +348,7 @@ export default function ScanDetailPage() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
           <Card className="bg-gradient-to-br from-gray-900/50 to-gray-800/30 border border-gray-700/50 backdrop-blur-sm hover:scale-105 transition-transform">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-gray-300 flex items-center gap-2">
@@ -345,15 +409,43 @@ export default function ScanDetailPage() {
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-purple-900/30 to-purple-800/10 border border-purple-500/30 backdrop-blur-sm hover:scale-105 transition-transform">
+          <Card className="bg-gradient-to-br from-cyan-900/30 to-cyan-800/10 border border-cyan-500/30 backdrop-blur-sm hover:scale-105 transition-transform">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-purple-300">Actions</CardTitle>
+              <CardTitle className="text-sm font-medium text-cyan-300 flex items-center gap-2">
+                <Clock className="h-4 w-4" />
+                Duration
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <Button size="sm" variant="outline" className="w-full border-purple-500/50 text-purple-400 hover:bg-purple-500/10">
-                <Download className="h-4 w-4 mr-1" />
-                Report
-              </Button>
+              <div className="text-2xl font-bold text-cyan-400">{formatDuration(scanMetrics.duration)}</div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-teal-900/30 to-teal-800/10 border border-teal-500/30 backdrop-blur-sm hover:scale-105 transition-transform">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-teal-300 flex items-center gap-2">
+                <Zap className="h-4 w-4" />
+                Per Finding
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-teal-400">
+                {scanMetrics.avgTimePerFinding ? `${scanMetrics.avgTimePerFinding}s` : 'N/A'}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-purple-900/30 to-purple-800/10 border border-purple-500/30 backdrop-blur-sm hover:scale-105 transition-transform">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-purple-300 flex items-center gap-2">
+                <Activity className="h-4 w-4" />
+                Agents
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-purple-400">
+                {scanMetrics.agentsCompleted}/{scanMetrics.totalAgents}
+              </div>
             </CardContent>
           </Card>
         </div>

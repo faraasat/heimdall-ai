@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid'
-import type { Finding, ScanType, AgentActivityLog } from '../types/database'
+import type { Finding, ScanType, AgentActivityLog, FindingSeverity, FindingState } from '../types/database'
 import { analyzeVulnerability, generateRemediation } from '../ai/security-analysis'
 
 export interface AgentContext {
@@ -49,11 +49,11 @@ export abstract class BaseAgent {
     }
   ) {
     // Report finding immediately without waiting for AI analysis
-    const findingData = {
+    const findingData: Omit<Finding, 'id' | 'scan_id' | 'created_at' | 'updated_at'> = {
       ...finding,
       discovered_by_agent: this.name,
       discovered_at: new Date().toISOString(),
-      state: 'new',
+      state: 'new' as FindingState,
       ai_reasoning: {
         reasoning_chain: ['AI analysis pending...'],
         confidence_score: 0,
