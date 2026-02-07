@@ -17,6 +17,7 @@ export class NetworkAgent extends BaseAgent {
     try {
       // Parse target to get hostname
       const target = context.target.replace(/^https?:\/\//, '').split('/')[0]
+      const fullTarget = context.target.includes('://') ? context.target : `https://${context.target}`
       
       await this.log(context, `Performing reconnaissance on ${target}`, 'running')
 
@@ -28,6 +29,12 @@ export class NetworkAgent extends BaseAgent {
 
       // Service Detection
       await this.performServiceDetection(context, target)
+
+      // Robots.txt Analysis
+      await this.analyzeRobotsTxt(context, fullTarget)
+
+      // Sitemap Analysis
+      await this.analyzeSitemap(context, fullTarget)
 
       await this.log(context, 'Network penetration test completed', 'completed')
     } catch (error) {
@@ -197,5 +204,93 @@ export class NetworkAgent extends BaseAgent {
     }
 
     await this.log(context, 'Service detection completed', 'completed')
+  }
+
+  private async analyzeRobotsTxt(context: AgentContext, target: string) {
+    await this.log(context, 'Analyzing robots.txt for information disclosure', 'running')
+
+    try {
+      const robotsUrl = `${target}/robots.txt`
+      const response = await axios.get(robotsUrl, {
+        timeout: 5000,
+        validateStatus: (status) => status === 200,
+      })
+
+      if (response.data) {
+        await this.log(context, 'Found robots.txt file', 'completed')
+
+        // Parse robots.txt for disallowed paths
+        const lines = response.data.split('\n')
+        const disallowedPaths: string[] = []
+        
+        for (const line of lines) {
+          const trimmed = line.trim()
+          if (trimmed.toLowerCase().startsWith('disallow:')) {
+            const path = trimmed.substring(9).trim()
+            if (path && path !== '/') {
+              disallowedPaths.push(path)
+            }
+          }
+        }
+
+        if (disallowedPaths.length > 0) {
+          await this.reportFinding(context, {
+            title: 'Sensitive Paths Disclosed in robots.txt',
+            description: `Found ${disallowedPaths.length} disallowed paths in robots.txt. These paths may contain sensitive information or admin panels: ${disallowedPaths.slice(0, 5).join(', ')}${disallowedPaths.length > 5 ? '...' : ''}`,
+            severity: 'medium',
+            affected_asset: robotsUrl,
+            evidence: {
+              disallowed_paths: disallowedPaths,
+              total_count: disallowedPaths.length,
+            },
+            cwe_id: 'CWE-200',
+          })
+
+          await this.log(context, `Discovered ${disallowedPaths.length} disallowed paths`, 'completed')
+        }
+      }
+    } catch (error) {
+      await this.log(context, 'No robots.txt found or error analyzing it', 'completed')
+    }
+  }
+
+  private async analyzeSitemap(context: AgentContext, target: string) {
+    await this.log(context, 'Analyzing sitemap.xml for endpoint discovery', 'running')
+
+    try {
+      const sitemapUrl = `${target}/sitemap.xml`
+      const response = await axios.get(sitemapUrl, {
+        timeout: 5000,
+        validateStatus: (status) => status === 200,
+      })
+
+      if (response.data) {
+        await this.log(context, 'Found sitemap.xml file', 'completed')
+
+        // Extract URLs from sitemap
+        const urlMatches = response.data.match(/<loc>(.*?)<\/loc>/g) || []
+        const urls = urlMatches.map((match: string) => 
+          match.replace(/<\/?loc>/g, '').trim()
+        )
+
+        if (urls.length > 0) {
+          await this.reportFinding(context, {
+            title: 'Sitemap Discovered with Endpoint Information',
+            description: `Found sitemap.xml with ${urls.length} URLs. This reveals the site structure and all public endpoints. First 10: ${urls.slice(0, 10).join(', ')}${urls.length > 10 ? '...' : ''}`,
+            severity: 'info',
+            affected_asset: sitemapUrl,
+            evidence: {
+              urls: urls.slice(0, 50), // Limit to first 50 for storage
+              total_count: urls.length,
+            },
+            cwe_id: 'CWE-200',
+          })
+
+          await this.log(context, `Discovered ${urls.length} URLs from sitemap`, 'completed')
+        }
+      }
+    } catch (error) {
+      await this.log(context, 'No sitemap.xml found or error analyzing it', 'completed')
+    }
   }
 }

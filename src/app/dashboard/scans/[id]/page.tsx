@@ -35,6 +35,33 @@ export default function ScanDetailPage() {
     agentsCompleted: number
     totalAgents: number
   }>({ startTime: null, endTime: null, duration: null, avgTimePerFinding: null, agentsCompleted: 0, totalAgents: 0 })
+  const [stopping, setStopping] = useState(false)
+
+  const handleStopScan = async () => {
+    if (!scan || scan.status !== 'running' || stopping) return
+    
+    if (!confirm('Are you sure you want to stop this scan? Progress will be lost.')) {
+      return
+    }
+
+    setStopping(true)
+    try {
+      const response = await fetch(`/api/scans/${scanId}/stop`, {
+        method: 'POST',
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to stop scan')
+      }
+
+      // The SSE stream will update the scan status automatically
+    } catch (error) {
+      console.error('Error stopping scan:', error)
+      alert('Failed to stop scan. Please try again.')
+    } finally {
+      setStopping(false)
+    }
+  }
 
   const calculateMetrics = (currentScan: Scan, currentLogs: AgentActivityLog[], currentFindings: Finding[]) => {
     const startTime = currentScan.created_at
@@ -256,6 +283,7 @@ export default function ScanDetailPage() {
       running: { colors: "bg-gradient-to-r from-blue-500/20 to-blue-600/20 text-blue-300 border-blue-500/50 animate-pulse", icon: Clock },
       completed: { colors: "bg-gradient-to-r from-green-500/20 to-green-600/20 text-green-300 border-green-500/50", icon: CheckCircle },
       failed: { colors: "bg-gradient-to-r from-red-500/20 to-red-600/20 text-red-300 border-red-500/50", icon: AlertTriangle },
+      cancelled: { colors: "bg-gradient-to-r from-gray-500/20 to-gray-600/20 text-gray-300 border-gray-500/50", icon: AlertTriangle },
       pending: { colors: "bg-gradient-to-r from-gray-500/20 to-gray-600/20 text-gray-300 border-gray-500/50", icon: Clock }
     }
 
@@ -315,6 +343,18 @@ export default function ScanDetailPage() {
             </div>
             <div className="flex items-center gap-3">
               {getStatusBadge(scan.status)}
+              {scan.status === 'running' && (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={handleStopScan}
+                  disabled={stopping}
+                  className="border-red-500/50 text-red-400 hover:bg-red-500/10"
+                >
+                  <AlertTriangle className="h-4 w-4 mr-2" />
+                  {stopping ? 'Stopping...' : 'Stop Scan'}
+                </Button>
+              )}
               {scan.status === 'completed' && (
                 <Button 
                   variant="outline" 
