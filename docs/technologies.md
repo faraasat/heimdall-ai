@@ -2,7 +2,7 @@
 
 This document defines the complete technology stack for HeimdallAI, organized by layer. Selections are optimized for hackathon speed, free-tier availability, and long-term scalability.
 
-For whatever tools official cli is present for scaffolding, please prefer to use that.
+For whatever tools official cli is present for scaffolding, please prefer to use that. You also have to use the latest version of every package or library.
 
 ---
 

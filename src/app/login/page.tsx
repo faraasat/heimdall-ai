@@ -44,9 +44,9 @@ export default function LoginPage() {
       // Wait a moment for cookies to be properly set
       await new Promise(resolve => setTimeout(resolve, 100))
       
-      // Small delay then navigate
-      await new Promise(resolve => setTimeout(resolve, 50))
-      router.push('/dashboard')
+       // Do a full navigation so the next request is guaranteed
+       // to include freshly set httpOnly Supabase cookies.
+       window.location.assign('/dashboard')
     } catch (error) {
       setError('An error occurred. Please try again.')
       setLoading(false)
