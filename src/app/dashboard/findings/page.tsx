@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Shield, AlertTriangle, Info } from "lucide-react"
+import { Shield, AlertTriangle, TrendingUp, Activity, Zap, ArrowRight, Plus } from "lucide-react"
 import Link from "next/link"
 
 export default async function FindingsPage() {
@@ -30,152 +30,203 @@ export default async function FindingsPage() {
   const mediumCount = findings?.filter(f => f.severity === 'medium').length || 0
   const lowCount = findings?.filter(f => f.severity === 'low').length || 0
 
-  return (
-    <div className="min-h-screen bg-gray-950 text-white">
-      {/* Header */}
-      <header className="border-b border-gray-800 backdrop-blur-sm bg-gray-950/80">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <Shield className="h-8 w-8 text-blue-500" />
-            <span className="text-2xl font-bold">HeimdallAI</span>
-          </div>
-          <nav className="flex items-center gap-6">
-            <Link href="/dashboard" className="text-gray-300 hover:text-white transition">
-              Dashboard
-            </Link>
-            <Link href="/dashboard/scans" className="text-gray-300 hover:text-white transition">
-              Scans
-            </Link>
-            <Link href="/dashboard/findings" className="text-white font-semibold">
-              Findings
-            </Link>
-            <Link href="/settings" className="text-gray-300 hover:text-white transition">
-              Settings
-            </Link>
-          </nav>
-        </div>
-      </header>
+  const getSeverityBadge = (severity: string) => {
+    const colors: Record<string, string> = {
+      critical: "bg-gradient-to-r from-red-500/30 to-red-600/20 text-red-200 border-red-500/50",
+      high: "bg-gradient-to-r from-orange-500/30 to-orange-600/20 text-orange-200 border-orange-500/50",
+      medium: "bg-gradient-to-r from-yellow-500/30 to-yellow-600/20 text-yellow-200 border-yellow-500/50",
+      low: "bg-gradient-to-r from-blue-500/30 to-blue-600/20 text-blue-200 border-blue-500/50",
+      info: "bg-gradient-to-r from-gray-500/30 to-gray-600/20 text-gray-200 border-gray-500/50"
+    }
 
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Security Findings</h1>
-          <p className="text-gray-400">All discovered vulnerabilities across your scans</p>
+    return (
+      <Badge className={`${colors[severity] || colors.info} border px-3 py-1`}>
+        {severity.toUpperCase()}
+      </Badge>
+    )
+  }
+
+  const getStateBadge = (state: string) => {
+    const colors: Record<string, string> = {
+      new: "bg-yellow-500/20 text-yellow-300 border-yellow-500/50",
+      confirmed: "bg-orange-500/20 text-orange-300 border-orange-500/50",
+      false_positive: "bg-gray-500/20 text-gray-300 border-gray-500/50",
+      remediated: "bg-green-500/20 text-green-300 border-green-500/50",
+      accepted_risk: "bg-blue-500/20 text-blue-300 border-blue-500/50"
+    }
+
+    return (
+      <Badge className={`${colors[state] || colors.new} border px-2 py-0.5 text-xs`}>
+        {state.replace('_', ' ').toUpperCase()}
+      </Badge>
+    )
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-950 text-white relative overflow-hidden">
+      {/* Animated background */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute w-96 h-96 -top-48 -left-48 bg-red-500/20 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute w-96 h-96 top-1/3 -right-48 bg-orange-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+        <div className="absolute w-96 h-96 bottom-0 left-1/2 bg-red-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
+      </div>
+
+      <div className="relative container mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="backdrop-blur-sm bg-gray-900/30 rounded-lg p-6 border border-gray-800/50 mb-8">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-red-400 to-orange-400 bg-clip-text text-transparent mb-2">
+                Security Findings
+              </h1>
+              <p className="text-gray-400">All discovered vulnerabilities across your scans</p>
+            </div>
+            <Link href="/dashboard/new-scan">
+              <Button className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white border-0">
+                <Plus className="h-4 w-4 mr-2" />
+                New Scan
+              </Button>
+            </Link>
+          </div>
         </div>
 
         {/* Stats */}
-        <div className="grid md:grid-cols-5 gap-4 mb-8">
-          <Card className="bg-gray-900 border-gray-800">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+          <Card className="bg-gradient-to-br from-gray-900/50 to-gray-800/30 border border-gray-700/50 backdrop-blur-sm hover:scale-105 transition-transform">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-300">Total</CardTitle>
+              <CardTitle className="text-sm font-medium text-gray-300 flex items-center gap-2">
+                <TrendingUp className="h-4 w-4 text-gray-400" />
+                Total
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{findings?.length || 0}</div>
+              <div className="text-3xl font-bold text-white">{findings?.length || 0}</div>
             </CardContent>
           </Card>
 
-          <Card className="bg-red-900/20 border-red-500">
+          <Card className="bg-gradient-to-br from-red-900/30 to-red-800/10 border border-red-500/30 backdrop-blur-sm hover:scale-105 transition-transform">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-red-300">Critical</CardTitle>
+              <CardTitle className="text-sm font-medium text-red-300 flex items-center gap-2">
+                <AlertTriangle className="h-4 w-4" />
+                Critical
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-red-400">{criticalCount}</div>
+              <div className="text-3xl font-bold text-red-400">{criticalCount}</div>
             </CardContent>
           </Card>
 
-          <Card className="bg-orange-900/20 border-orange-500">
+          <Card className="bg-gradient-to-br from-orange-900/30 to-orange-800/10 border border-orange-500/30 backdrop-blur-sm hover:scale-105 transition-transform">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-orange-300">High</CardTitle>
+              <CardTitle className="text-sm font-medium text-orange-300 flex items-center gap-2">
+                <Zap className="h-4 w-4" />
+                High
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-orange-400">{highCount}</div>
+              <div className="text-3xl font-bold text-orange-400">{highCount}</div>
             </CardContent>
           </Card>
 
-          <Card className="bg-yellow-900/20 border-yellow-500">
+          <Card className="bg-gradient-to-br from-yellow-900/30 to-yellow-800/10 border border-yellow-500/30 backdrop-blur-sm hover:scale-105 transition-transform">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-yellow-300">Medium</CardTitle>
+              <CardTitle className="text-sm font-medium text-yellow-300 flex items-center gap-2">
+                <Activity className="h-4 w-4" />
+                Medium
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-yellow-400">{mediumCount}</div>
+              <div className="text-3xl font-bold text-yellow-400">{mediumCount}</div>
             </CardContent>
           </Card>
 
-          <Card className="bg-blue-900/20 border-blue-500">
+          <Card className="bg-gradient-to-br from-blue-900/30 to-blue-800/10 border border-blue-500/30 backdrop-blur-sm hover:scale-105 transition-transform">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-blue-300">Low</CardTitle>
+              <CardTitle className="text-sm font-medium text-blue-300 flex items-center gap-2">
+                <Shield className="h-4 w-4" />
+                Low
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-blue-400">{lowCount}</div>
+              <div className="text-3xl font-bold text-blue-400">{lowCount}</div>
             </CardContent>
           </Card>
         </div>
 
         {/* Findings List */}
-        <Card className="bg-gray-900 border-gray-800">
+        <Card className="bg-gradient-to-br from-gray-900/50 to-gray-800/30 border border-gray-700/50 backdrop-blur-sm">
           <CardHeader>
-            <CardTitle>All Findings</CardTitle>
-            <CardDescription>Click on any finding to view details and remediation steps</CardDescription>
+            <CardTitle className="text-white flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-red-400" />
+              All Findings
+            </CardTitle>
+            <CardDescription className="text-gray-400">Click on any finding to view details and remediation steps</CardDescription>
           </CardHeader>
           <CardContent>
             {findings && findings.length > 0 ? (
               <div className="space-y-3">
-                {findings.map((finding: any) => (
+                {findings.map((finding: any, index: number) => (
                   <Link key={finding.id} href={`/dashboard/findings/${finding.id}`}>
-                    <div className="p-4 border border-gray-800 rounded-lg hover:border-gray-700 transition cursor-pointer">
-                      <div className="flex items-start justify-between mb-2">
+                    <div 
+                      className="p-5 bg-gray-800/40 border border-gray-700/50 rounded-lg hover:border-red-500/50 hover:scale-[1.02] transition-all cursor-pointer"
+                      style={{ animationDelay: `${index * 30}ms` }}
+                    >
+                      <div className="flex items-start justify-between mb-3">
                         <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <h3 className="font-semibold">{finding.title}</h3>
-                            <Badge
-                              variant="outline"
-                              className={
-                                finding.severity === 'critical' ? 'border-red-500 text-red-400' :
-                                finding.severity === 'high' ? 'border-orange-500 text-orange-400' :
-                                finding.severity === 'medium' ? 'border-yellow-500 text-yellow-400' :
-                                'border-blue-500 text-blue-400'
-                              }
-                            >
-                              {finding.severity}
-                            </Badge>
-                            {finding.ai_confidence && (
-                              <Badge variant="outline" className="text-xs">
-                                {Math.round(finding.ai_confidence * 100)}% confidence
+                          <div className="flex items-center gap-2 mb-2 flex-wrap">
+                            <h3 className="font-semibold text-white text-lg">{finding.title}</h3>
+                            {getSeverityBadge(finding.severity)}
+                            {finding.ai_reasoning?.confidence_score && (
+                              <Badge variant="outline" className="text-xs border-blue-500/30 text-blue-300">
+                                {Math.round(finding.ai_reasoning.confidence_score * 100)}% AI confidence
                               </Badge>
                             )}
                           </div>
-                          <p className="text-sm text-gray-400 mb-2">{finding.description}</p>
+                          <p className="text-sm text-gray-300 mb-3 leading-relaxed">{finding.description}</p>
                           {finding.scan && (
-                            <div className="flex gap-4 text-xs text-gray-500">
-                              <span>Scan: {finding.scan.name}</span>
-                              <span>Target: {finding.scan.target}</span>
+                            <div className="flex flex-wrap gap-3 text-xs text-gray-400 mb-2">
+                              <span className="flex items-center gap-1">
+                                <Shield className="h-3 w-3" />
+                                <span className="font-medium">Scan:</span> {finding.scan.name}
+                              </span>
+                              <span className="flex items-center gap-1">
+                                <Activity className="h-3 w-3" />
+                                <span className="font-medium">Target:</span> {finding.scan.target}
+                              </span>
+                              <span className="flex items-center gap-1">
+                                <Zap className="h-3 w-3" />
+                                <span className="font-medium">Agent:</span> {finding.discovered_by_agent || 'Unknown'}
+                              </span>
                             </div>
                           )}
+                          {finding.affected_asset && (
+                            <p className="text-xs text-gray-500 font-mono bg-gray-900/50 px-2 py-1 rounded border border-gray-700/30 inline-block">
+                              📍 {finding.affected_asset}
+                            </p>
+                          )}
                         </div>
-                        <Badge
-                          variant="outline"
-                          className={
-                            finding.state === 'open' ? 'border-yellow-500 text-yellow-400' :
-                            finding.state === 'remediated' ? 'border-green-500 text-green-400' :
-                            'border-gray-500 text-gray-400'
-                          }
-                        >
-                          {finding.state}
-                        </Badge>
+                        <div className="flex flex-col items-end gap-2">
+                          {getStateBadge(finding.state || 'new')}
+                          <ArrowRight className="h-4 w-4 text-gray-500" />
+                        </div>
                       </div>
-                      {finding.location && (
-                        <p className="text-xs text-gray-500">Location: {finding.location}</p>
-                      )}
                     </div>
                   </Link>
                 ))}
               </div>
             ) : (
-              <div className="text-center py-12 text-gray-400">
-                <AlertTriangle className="h-16 w-16 mx-auto mb-4 opacity-50" />
-                <p className="text-lg mb-2">No findings yet</p>
-                <p className="text-sm mb-4">Run a security scan to discover vulnerabilities</p>
+              <div className="text-center py-16 text-gray-400">
+                <div className="relative mx-auto w-20 h-20 mb-6">
+                  <div className="absolute inset-0 bg-gradient-to-br from-green-500/20 to-blue-500/20 rounded-full"></div>
+                  <Shield className="absolute inset-0 m-auto h-10 w-10 text-green-400" />
+                </div>
+                <p className="text-xl font-semibold text-white mb-2">No findings yet</p>
+                <p className="text-sm mb-6">Run a security scan to discover vulnerabilities in your applications</p>
                 <Link href="/dashboard/new-scan">
-                  <Button>Create New Scan</Button>
+                  <Button className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white border-0">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Create New Scan
+                  </Button>
                 </Link>
               </div>
             )}
