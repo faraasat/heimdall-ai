@@ -2,10 +2,33 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getOrchestrator } from '@/lib/agents/orchestrator'
 import type { ScanType } from '@/lib/types/database'
+ 
+function isSchemaCacheMissingTableError(err: any): boolean {
+  const message = typeof err?.message === "string" ? err.message : "";
+  return err?.code === "PGRST205" || message.toLowerCase().includes("schema cache");
+}
 
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient()
+    
+    // Detect missing schema early to produce a clearer error.
+    // This commonly happens when the Supabase project hasn't had migrations applied.
+    const { error: preflightError } = await supabase
+      .from("scans")
+      .select("id", { head: true })
+      .limit(1);
+    
+    if (preflightError && isSchemaCacheMissingTableError(preflightError)) {
+      return NextResponse.json(
+        {
+          error:
+            "Database schema is not installed (missing public.scans) or schema cache is stale. Apply migrations (see supabase-schema.sql) and retry.",
+          code: preflightError.code,
+        },
+        { status: 503 }
+      );
+    }
     
     // Get authenticated user
     const { data: { user }, error: authError } = await supabase.auth.getUser()

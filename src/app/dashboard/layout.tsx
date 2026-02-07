@@ -15,7 +15,7 @@ export default function RootLayout({
         <div className="absolute -bottom-1/2 -right-1/2 w-full h-full bg-purple-500/5 rounded-full blur-3xl animate-pulse delay-1000" />
       </div>
 
-      <DashboardNavbar />
+      {/* <DashboardNavbar /> */}
       <div className="relative flex">
         <DashboardSidebar />
         <div className="flex-1 min-w-0">{children}</div>

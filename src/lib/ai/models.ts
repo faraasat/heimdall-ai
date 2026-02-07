@@ -1,6 +1,38 @@
 import { ChatGroq } from "@langchain/groq"
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai"
 
+type MinimalChatModel = {
+  invoke: (messages: unknown) => Promise<{ content: string }>
+}
+
+function getNoopModel(): MinimalChatModel {
+  return {
+    async invoke() {
+      // Always return valid JSON so callers can parse.
+      return {
+        content: JSON.stringify({
+          severity: "medium",
+          confidence: 40,
+          reasoning: [
+            "AI model is not configured (missing GROQ_API_KEY/GOOGLE_AI_API_KEY).",
+            "Using deterministic fallback analysis.",
+          ],
+          exploitability: "medium",
+          false_positive_likelihood: 50,
+          steps: [
+            "Review the vulnerability details.",
+            "Apply security best practices.",
+            "Test and verify the fix.",
+          ],
+          estimated_effort: "Unknown",
+          priority: "medium",
+          verification_steps: ["Re-run the scan and confirm the issue is resolved."],
+        }),
+      }
+    },
+  }
+}
+
 // Groq configuration (primary)
 export function getGroqModel(options: { temperature?: number; modelName?: string } = {}) {
   const apiKey = process.env.GROQ_API_KEY
@@ -36,16 +68,19 @@ export async function getAIModel(preferredModel: 'groq' | 'gemini' = 'groq', opt
   try {
     if (preferredModel === 'groq') {
       return getGroqModel(options)
-    } else {
-      return getGeminiModel(options)
     }
+    return getGeminiModel(options)
   } catch (error) {
     console.warn(`Failed to initialize ${preferredModel}, falling back...`, error)
-    // Fallback to the other model
-    if (preferredModel === 'groq') {
-      return getGeminiModel(options)
-    } else {
+    try {
+      // Fallback to the other model
+      if (preferredModel === 'groq') {
+        return getGeminiModel(options)
+      }
       return getGroqModel(options)
+    } catch (fallbackError) {
+      console.warn('No AI provider configured; using noop model.', fallbackError)
+      return getNoopModel() as any
     }
   }
 }
