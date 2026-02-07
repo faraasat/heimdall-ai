@@ -220,7 +220,12 @@ ${recentFindings.slice(0, 5).map((f) => `- [${f.severity}] ${f.title}`).join("\n
     } catch (geminiError) {
       console.error("Both AI services failed:", geminiError);
       assistantResponse =
-        "I'm having trouble connecting to my AI services right now. Please try again in a moment.";
+        "⚠️ I'm experiencing connectivity issues with my AI services right now.\n\n" +
+        "This usually happens when:\n" +
+        "• API keys are not configured (GROQ_API_KEY or GOOGLE_API_KEY)\n" +
+        "• Rate limits have been exceeded\n" +
+        "• Network connectivity issues\n\n" +
+        "Please try again in a moment, or contact your administrator if the issue persists.";
     }
   }
 

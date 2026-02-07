@@ -17,16 +17,25 @@ export default async function FindingDetailPage({ params }: { params: { id: stri
   }
 
   // Fetch finding with scan details
-  const { data: finding } = await supabase
+  const { data: finding, error: findingError } = await supabase
     .from('findings')
     .select(`
       *,
-      scan:scans(id, name, target, user_id)
+      scan:scans!inner(id, name, target, user_id)
     `)
     .eq('id', params.id)
     .single()
 
-  if (!finding || finding.scan.user_id !== user.id) {
+  // Check if user is admin
+  const { data: userData } = await supabase
+    .from('users')
+    .select('role')
+    .eq('id', user.id)
+    .single()
+
+  const isAdmin = userData?.role === 'admin'
+
+  if (!finding || (!isAdmin && finding.scan?.user_id !== user.id)) {
     notFound()
   }
 

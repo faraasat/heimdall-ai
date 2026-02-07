@@ -121,6 +121,8 @@ export class APIAgent extends BaseAgent {
     }
     await this.log(context, 'Testing input validation', 'running')
 
+    let vulnerableToPayloadsCount = 0
+
     try {
       // Test with various malicious payloads
       const payloads = [
@@ -198,6 +200,7 @@ export class APIAgent extends BaseAgent {
       if (vulnerableToPayloads.length === 0) {
         await this.log(context, 'No input validation issues detected with test payloads', 'completed')
       } else {
+        vulnerableToPayloadsCount = vulnerableToPayloads.length
         await this.log(context, `Input validation issues found: ${vulnerableToPayloads.join(', ')}`, 'completed')
       }
     } catch (error) {
@@ -208,21 +211,13 @@ export class APIAgent extends BaseAgent {
     
     if (validationTool) {
       await this.logToolUsage(context, validationTool, 'completed', { 
-        result: `Tested ${payloads.length} payload types`,
-        vulnerableToPayloads: vulnerableToPayloads.length > 0 ? vulnerableToPayloads : 'none'
+        result: 'Input validation testing completed',
+        issuesFound: vulnerableToPayloadsCount
       })
     }
   }
 
   private async testAPIEndpoints(context: AgentContext, target: string) {
-    const tools = this.getToolsForAgent('api')
-    const enumTool = tools.find(t => t.name.includes('GraphQL Inspector') || t.features.includes('API Discovery'))
-    
-    if (enumTool) {
-      await this.logToolUsage(context, enumTool, 'starting', { endpoints: commonEndpoints.length })
-    }
-    await this.log(context, 'Testing common API endpoints', 'running')
-
     const commonEndpoints = [
       '/api/users',
       '/api/admin',
@@ -232,6 +227,14 @@ export class APIAgent extends BaseAgent {
       '/swagger',
       '/api-docs',
     ]
+
+    const tools = this.getToolsForAgent('api')
+    const enumTool = tools.find(t => t.name.includes('GraphQL Inspector') || t.features.includes('API Discovery'))
+    
+    if (enumTool) {
+      await this.logToolUsage(context, enumTool, 'starting', { endpoints: commonEndpoints.length })
+    }
+    await this.log(context, 'Testing common API endpoints', 'running')
 
     try {
       for (const endpoint of commonEndpoints) {

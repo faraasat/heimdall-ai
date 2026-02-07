@@ -71,8 +71,16 @@ export default async function ReportsPage() {
             ))
           ) : (
             <div className="text-center py-16 text-gray-400">
-              <p className="text-lg">No reports yet</p>
-              <p className="text-sm text-gray-500 mt-2">Run a scan to generate reports.</p>
+              <FileText className="h-16 w-16 mx-auto mb-4 opacity-30" />
+              <p className="text-lg font-semibold text-white mb-2">No Reports Generated Yet</p>
+              <p className="text-sm text-gray-400 mb-6 max-w-md mx-auto">
+                Reports are generated after scans complete. Visit your completed scans to export findings as executive, technical, or compliance reports.
+              </p>
+              <Link href="/dashboard/scans">
+                <Button className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white border-0">
+                  View Scans
+                </Button>
+              </Link>
             </div>
           )}
         </CardContent>

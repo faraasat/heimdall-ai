@@ -3,8 +3,9 @@
 import { Shield, LayoutDashboard, ScanSearch, AlertTriangle, FileText, MessageSquare, Settings, ShieldCheck, ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { createClient } from "@/lib/supabase/client";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -19,6 +20,23 @@ const navItems = [
 export function DashboardSidebar() {
   const pathname = usePathname();
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    async function checkAdminStatus() {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        const { data: userData } = await supabase
+          .from('users')
+          .select('role')
+          .eq('id', user.id)
+          .single()
+        setIsAdmin(userData?.role === 'admin')
+      }
+    }
+    checkAdminStatus()
+  }, [])
 
   const isActive = (href: string) => {
     if (href === "/dashboard") {
@@ -28,7 +46,7 @@ export function DashboardSidebar() {
   };
 
   return (
-    <aside className={`hidden md:block shrink-0 transition-all duration-300 ${isCollapsed ? 'w-20' : 'w-64'}`}>
+    <aside className={`hidden md:block shrink-0 transition-all duration-300 z-2 ${isCollapsed ? 'w-20' : 'w-64'}`}>
       <div className="sticky top-0 h-[calc(100vh-73px)] border-r border-gray-800/50 bg-gray-950/40 backdrop-blur-sm">
         <div className="flex items-center justify-between h-16 px-4 pt-4">
           <Link
@@ -72,11 +90,16 @@ export function DashboardSidebar() {
 
         <nav className="p-4 space-y-1 mt-2">
           {navItems.map((item) => {
+            // Hide admin tab if user is not admin
+            if (item.href === '/dashboard/admin' && !isAdmin) {
+              return null
+            }
+
             const Icon = item.icon;
             const active = isActive(item.href);
             
             return (
-              <div key={item.href} className="relative group">
+              <div key={item.href} className="relative group z-2">
                 <Link
                   href={item.href}
                   className={`flex items-center gap-3 rounded-md px-3 py-2.5 text-sm transition-all ${
@@ -94,7 +117,7 @@ export function DashboardSidebar() {
                 
                 {/* Tooltip on hover when collapsed */}
                 {isCollapsed && (
-                  <div className="absolute left-full ml-2 px-2 py-1 bg-gray-800 text-white text-sm rounded-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap z-[9999]">
+                  <div className="absolute left-full ml-2 px-2 py-1 bg-gray-800 text-white text-sm rounded-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap z-2">
                     {item.label}
                     <div className="absolute top-1/2 -left-1 -translate-y-1/2 border-4 border-transparent border-r-gray-800" />
                   </div>

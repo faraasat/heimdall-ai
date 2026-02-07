@@ -122,65 +122,7 @@ export default async function FindingsPage() {
           </Card>
         </div>
 
-        {/* Findings List */}
-        <Card className="bg-gradient-to-br from-gray-900/50 to-gray-800/30 border border-gray-700/50 backdrop-blur-sm">
-          <CardHeader>
-            <CardTitle className="text-white flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-red-400" />
-              All Findings
-            </CardTitle>
-            <CardDescription className="text-gray-400">Click on any finding to view details and remediation steps</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {findings && findings.length > 0 ? (
-              <div className="space-y-3">
-                {findings.map((finding: any, index: number) => (
-                  <Link key={finding.id} href={`/dashboard/findings/${finding.id}`}>
-                    <div 
-                      className="p-5 bg-gray-800/40 border border-gray-700/50 rounded-lg hover:border-red-500/50 hover:scale-[1.02] transition-all cursor-pointer"
-                      style={{ animationDelay: `${index * 30}ms` }}
-                    >
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2 flex-wrap">
-                            <h3 className="font-semibold text-white text-lg">{finding.title}</h3>
-                            {getSeverityBadge(finding.severity)}
-                            {finding.ai_reasoning?.confidence_score && (
-                              <Badge variant="outline" className="text-xs border-blue-500/30 text-blue-300">
-                                {Math.round(finding.ai_reasoning.confidence_score * 100)}% AI confidence
-                              </Badge>
-                            )}
-                          </div>
-                          <p className="text-sm text-gray-300 mb-3 leading-relaxed">{finding.description}</p>
-                          {finding.scan && (
-                            <div className="flex flex-wrap gap-3 text-xs text-gray-400 mb-2">
-                              <span>Scan: {finding.scan.name}</span>
-                              <span>•</span>
-                              <span>Target: {finding.scan.target}</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-12 text-gray-500">
-                <AlertTriangle className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>No findings yet. Start a new scan to discover vulnerabilities.</p>
-                <Link href="/dashboard/new-scan">
-                  <Button className="mt-4 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white border-0">
-                    <Plus className="h-4 w-4 mr-2" />
-                    New Scan
-                  </Button>
-                </Link>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Dynamic Findings List with Filters */}
+        {/* Findings List with Filters */}
         <FindingsList initialFindings={findings || []} />
       </div>
     </div>
