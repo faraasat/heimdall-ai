@@ -2,9 +2,9 @@ import { redirect, notFound } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Shield, ArrowLeft, Code, FileText, Lightbulb } from "lucide-react"
+import { Shield, ArrowLeft, Code, FileText, Lightbulb, AlertTriangle, CheckCircle, Brain, Target, TrendingUp, Zap, Book } from "lucide-react"
 import Link from "next/link"
+import FindingDetailClient from "@/components/findings/FindingDetailClient"
 
 export default async function FindingDetailPage({ params }: { params: { id: string } }) {
   const supabase = await createClient()
@@ -29,6 +29,13 @@ export default async function FindingDetailPage({ params }: { params: { id: stri
     notFound()
   }
 
+  return (
+    <FindingDetailClient finding={finding} />
+  )
+}
+
+// Legacy server component rendering kept for reference
+function LegacyFindingDetail({ finding }: any) {
   return (
     <div className="min-h-screen bg-gray-950 text-white">
       {/* Header */}

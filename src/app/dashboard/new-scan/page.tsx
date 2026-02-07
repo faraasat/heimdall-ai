@@ -13,70 +13,84 @@ import type { ScanType } from "@/lib/types/database"
 
 const scanTypes = [
   {
-    id: 'webapp' as ScanType,
-    name: 'Web Application',
-    description: 'Comprehensive web security testing including OWASP Top 10',
-    icon: Globe,
+    id: 'network' as ScanType,
+    name: 'Network Penetration',
+    description: 'Comprehensive network infrastructure testing',
+    icon: Shield,
+    emoji: '🌐',
     color: 'from-blue-500 to-cyan-500',
     borderColor: 'border-blue-500/30',
     hoverBorder: 'hover:border-blue-400/60',
-    features: ['SQL Injection', 'XSS', 'CSRF', 'Authentication'],
+    features: ['Port Scanning', 'Service Enumeration', 'Vulnerability Assessment', 'Network Mapping'],
+    subtypes: ['External', 'Internal', 'Wireless'],
   },
   {
-    id: 'api' as ScanType,
-    name: 'API Security',
-    description: 'REST & GraphQL API vulnerability assessment',
-    icon: Zap,
+    id: 'webapp' as ScanType,
+    name: 'Web Application',
+    description: 'Test web applications for OWASP Top 10',
+    icon: Globe,
+    emoji: '🌐',
     color: 'from-purple-500 to-pink-500',
     borderColor: 'border-purple-500/30',
     hoverBorder: 'hover:border-purple-400/60',
-    features: ['Authentication', 'Rate Limiting', 'Input Validation', 'Authorization'],
+    features: ['SQL Injection', 'XSS', 'CSRF', 'Authentication Bypass'],
+    subtypes: ['Black Box', 'Grey Box', 'White Box'],
   },
   {
-    id: 'network' as ScanType,
-    name: 'Network Scan',
-    description: 'Network infrastructure and port security analysis',
-    icon: Shield,
+    id: 'mobile' as ScanType,
+    name: 'Mobile Application',
+    description: 'iOS and Android application security testing',
+    icon: Cpu,
+    emoji: '📱',
     color: 'from-green-500 to-emerald-500',
     borderColor: 'border-green-500/30',
     hoverBorder: 'hover:border-green-400/60',
-    features: ['Port Scanning', 'Service Detection', 'SSL/TLS', 'Firewall Rules'],
+    features: ['Static Analysis', 'Dynamic Analysis', 'API Testing', 'Data Storage'],
+    subtypes: ['iOS', 'Android', 'Hybrid'],
   },
   {
     id: 'cloud' as ScanType,
     name: 'Cloud Security',
-    description: 'AWS, Azure, GCP configuration and compliance audit',
+    description: 'AWS, Azure, GCP infrastructure audit',
     icon: Cloud,
-    color: 'from-orange-500 to-red-500',
+    emoji: '☁️',
+    color: 'from-yellow-500 to-orange-500',
     borderColor: 'border-orange-500/30',
     hoverBorder: 'hover:border-orange-400/60',
-    features: ['IAM Policies', 'Storage Security', 'Network Config', 'Compliance'],
+    features: ['IAM Review', 'Storage Security', 'Network Config', 'Compliance'],
+    subtypes: ['AWS', 'Azure', 'GCP', 'Multi-Cloud'],
   },
   {
     id: 'iot' as ScanType,
-    name: 'IoT Devices',
-    description: 'Internet of Things device security assessment',
-    icon: Cpu,
-    color: 'from-yellow-500 to-orange-500',
-    borderColor: 'border-yellow-500/30',
-    hoverBorder: 'hover:border-yellow-400/60',
-    features: ['Firmware Analysis', 'Protocol Testing', 'Device Auth', 'Communication'],
+    name: 'IoT Testing',
+    description: 'Internet of Things and embedded devices',
+    icon: Zap,
+    emoji: '🔌',
+    color: 'from-pink-500 to-rose-500',
+    borderColor: 'border-pink-500/30',
+    hoverBorder: 'hover:border-pink-400/60',
+    features: ['Device Security', 'Protocol Analysis', 'Firmware Review', 'Hardware Hacking'],
+    subtypes: ['Consumer', 'Industrial', 'Healthcare'],
   },
   {
     id: 'config' as ScanType,
-    name: 'Configuration',
-    description: 'Infrastructure misconfigurations and hardening checks',
+    name: 'Configuration Review',
+    description: 'Security configuration and compliance audit',
     icon: Settings,
-    color: 'from-indigo-500 to-purple-500',
-    borderColor: 'border-indigo-500/30',
-    hoverBorder: 'hover:border-indigo-400/60',
-    features: ['Best Practices', 'Security Headers', 'Hardening', 'Defaults'],
+    emoji: '⚙️',
+    color: 'from-slate-500 to-gray-500',
+    borderColor: 'border-slate-500/30',
+    hoverBorder: 'hover:border-slate-400/60',
+    features: ['Security Hardening', 'Best Practices', 'Compliance Check', 'Policy Review'],
+    subtypes: ['Server', 'Database', 'Network', 'Application'],
   },
 ]
 
 export default function NewScanPage() {
   const router = useRouter()
   const [selectedTypes, setSelectedTypes] = useState<ScanType[]>([])
+  const [scanMode, setScanMode] = useState<'agentic' | 'manual'>('agentic')
+  const [approach, setApproach] = useState<'blackbox' | 'greybox' | 'whitebox'>('blackbox')
   const [scanName, setScanName] = useState("")
   const [target, setTarget] = useState("")
   const [naturalLanguage, setNaturalLanguage] = useState("")
@@ -116,6 +130,8 @@ export default function NewScanPage() {
         body: JSON.stringify({
           name: scanName,
           target,
+          scan_mode: scanMode,
+          testing_approach: approach,
           scan_types: selectedTypes,
           scan_type: selectedTypes[0], // For backward compatibility
           natural_language: naturalLanguage || undefined,
@@ -153,13 +169,140 @@ export default function NewScanPage() {
         <div className="mb-8">
           <Link href="/dashboard">
             <Button variant="outline" size="sm" className="border-blue-500/50 text-blue-400 hover:bg-blue-500/10 mb-4">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Dashboard
-            </Button>
-          </Link>
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent mb-2">
-            New Security Scan
+              <ArrowLeft class5xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent mb-3 text-center">
+            🚀 Launch Security Scan
           </h1>
+          <p className="text-gray-400 text-center text-lg">Select testing types and choose between AI-driven or manual assessment</p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-8">
+          {/* Scan Mode Selection */}
+          <Card className="bg-gradient-to-br from-gray-900/50 to-gray-800/30 border border-gray-700/50 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle className="text-white flex items-center gap-2">
+                <span className="text-2xl">🤖</span>
+                Scan Mode
+              </CardTitle>
+              <CardDescription className="text-gray-400">
+                Choose how you want to conduct the security assessment
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid md:grid-cols-2 gap-4">
+                <button
+                  type="button"
+                  onClick={() => setScanMode('agentic')}
+                  className={`p-6 rounded-lg border-2 transition-all ${
+                    scanMode === 'agentic'
+                      ? 'border-purple-500 bg-purple-500/20'
+                      : 'border-gray-700 bg-gray-800/30 hover:border-gray-600'
+                  }`}
+                >
+                  <div className="flex items-start gap-4">
+                    <div className={`text-4xl ${scanMode === 'agentic' ? 'animate-pulse' : ''}`}>🤖</div>
+                    <div className="text-left flex-1">
+                      <h3 className="text-xl font-bold text-white mb-2">Agentic Mode</h3>
+                      <p className="text-gray-400 text-sm mb-3">
+                        AI agents autonomously execute tests, adapt to findings, and make intelligent decisions
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        <Badge className="bg-purple-500/20 text-purple-300 border-purple-500/50">Autonomous</Badge>
+                        <Badge className="bg-blue-500/20 text-blue-300 border-blue-500/50">AI-Powered</Badge>
+                        <Badge className="bg-green-500/20 text-green-300 border-green-500/50">Adaptive</Badge>
+                      </div>
+                    </div>
+                    {scanMode === 'agentic' && (
+                      <div className="text-green-400">
+                        <Check className="h-6 w-6" />
+                      </div>
+                    )}
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setScanMode('manual')}
+                  className={`p-6 rounded-lg border-2 transition-all ${
+                    scanMode === 'manual'
+                      ? 'border-blue-500 bg-blue-500/20'
+                      : 'border-gray-700 bg-gray-800/30 hover:border-gray-600'
+                  }`}
+                >
+                  <div className="flex items-start gap-4">
+                    <div className={`text-4xl ${scanMode === 'manual' ? 'animate-pulse' : '' }`}>👤</div>
+                    <div className="text-left flex-1">
+                      <h3 className="text-xl font-bold text-white mb-2">Manual Mode</h3>
+                      <p className="text-gray-400 text-sm mb-3">
+                        Guide the testing process step-by-step with full control over techniques and targets
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        <Badge className="bg-blue-500/20 text-blue-300 border-blue-500/50">User-Guided</Badge>
+                        <Badge className="bg-yellow-500/20 text-yellow-300 border-yellow-500/50">Methodical</Badge>
+                        <Badge className="bg-orange-500/20 text-orange-300 border-orange-500/50">Controlled</Badge>
+                      </div>
+                    </div>
+                    {scanMode === 'manual' && (
+                      <div className="text-green-400">
+                        <Check className="h-6 w-6" />
+                      </div>
+                    )}
+                  </div>
+                </button>
+              </div>
+
+              {/* Testing Approach */}
+              <div>
+                <h3 className="text-white font-semibold mb-3">Testing Approach</h3>
+                <div className="grid grid-cols-3 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setApproach('blackbox')}
+                    className={`p-4 rounded-lg border transition-all ${
+                      approach === 'blackbox'
+                        ? 'border-blue-500 bg-blue-500/20'
+                        : 'border-gray-700 bg-gray-800/30 hover:border-gray-600'
+                    }`}
+                  >
+                    <div className="text-center">
+                      <div className="text-2xl mb-2">⬛</div>
+                      <p className="text-white font-medium">Black Box</p>
+                      <p className="text-gray-400 text-xs mt-1">No prior knowledge</p>
+                    </div>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setApproach('greybox')}
+                    className={`p-4 rounded-lg border transition-all ${
+                      approach === 'greybox'
+                        ? 'border-blue-500 bg-blue-500/20'
+                        : 'border-gray-700 bg-gray-800/30 hover:border-gray-600'
+                    }`}
+                  >
+                    <div className="text-center">
+                      <div className="text-2xl mb-2">⬜</div>
+                      <p className="text-white font-medium">Grey Box</p>
+                      <p className="text-gray-400 text-xs mt-1">Partial knowledge</p>
+                    </div>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setApproach('whitebox')}
+                    className={`p-4 rounded-lg border transition-all ${
+                      approach === 'whitebox'
+                        ? 'border-blue-500 bg-blue-500/20'
+                        : 'border-gray-700 bg-gray-800/30 hover:border-gray-600'
+                    }`}
+                  >
+                    <div className="text-center">
+                      <div className="text-2xl mb-2">□</div>
+                      <p className="text-white font-medium">White Box</p>
+                      <p className="text-gray-400 text-xs mt-1">Full knowledge</p>
+                    </div>
+                  </button>
+                </div>
+              </div>
+            </CardContent>
+          </Card
           <p className="text-gray-400">Configure and launch your AI-powered security assessment</p>
         </div>
 
