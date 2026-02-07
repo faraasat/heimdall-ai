@@ -145,7 +145,7 @@ export default function FindingsList({ initialFindings }: FindingsListProps) {
                 {getSeverityBadge(finding.severity)}
                 {finding.ai_reasoning?.confidence_score && (
                   <Badge variant="outline" className="text-xs border-blue-500/30 text-blue-300">
-                    {Math.round(finding.ai_reasoning.confidence_score * 100)}% AI confidence
+                    {Math.round(finding.ai_reasoning.confidence_score)}% AI confidence
                   </Badge>
                 )}
               </div>

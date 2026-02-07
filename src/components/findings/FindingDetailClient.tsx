@@ -138,11 +138,11 @@ export default function FindingDetailClient({ finding }: FindingDetailProps) {
                         <div className="flex-1 h-3 bg-gray-800 rounded-full overflow-hidden">
                           <div 
                             className="h-full bg-gradient-to-r from-purple-500 to-blue-500 transition-all duration-500"
-                            style={{ width: `${Math.round(finding.ai_reasoning.confidence_score * 100)}%` }}
+                            style={{ width: `${Math.round(finding.ai_reasoning.confidence_score)}%` }}
                           ></div>
                         </div>
                         <span className="text-white font-bold text-lg">
-                          {Math.round(finding.ai_reasoning.confidence_score * 100)}%
+                          {Math.round(finding.ai_reasoning.confidence_score)}%
                         </span>
                       </div>
                     </div>

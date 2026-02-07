@@ -117,7 +117,7 @@ function LegacyFindingDetail({ finding }: any) {
           {finding.ai_confidence && (
             <div className="mt-2">
               <Badge variant="outline">
-                AI Confidence: {Math.round(finding.ai_confidence * 100)}%
+                AI Confidence: {Math.round(finding.ai_confidence)}%
               </Badge>
             </div>
           )}

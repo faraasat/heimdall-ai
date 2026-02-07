@@ -8,7 +8,8 @@ export interface AgentContext {
   target: string
   config: Record<string, any>
   onLog: (log: Omit<AgentActivityLog, 'id' | 'scan_id'>) => Promise<void>
-  onFinding: (finding: Omit<Finding, 'id' | 'scan_id' | 'created_at' | 'updated_at'>) => Promise<void>
+  onFinding: (finding: Omit<Finding, 'id' | 'scan_id' | 'created_at' | 'updated_at'>) => Promise<string | void>
+  onFindingUpdate?: (findingId: string, updates: Partial<Finding>) => Promise<void>
 }
 
 export abstract class BaseAgent {
@@ -110,13 +111,15 @@ export abstract class BaseAgent {
       },
     }
 
-    // Save finding immediately
-    await context.onFinding(findingData)
+    // Save finding immediately and get its ID
+    const findingId = await context.onFinding(findingData)
 
     // Run AI analysis asynchronously (don't block scan execution)
-    this.enhanceFindingWithAI(finding, context).catch(err => {
-      console.error('Background AI analysis failed:', err)
-    })
+    if (findingId && typeof findingId === 'string') {
+      this.enhanceFindingWithAI(finding, findingId, context).catch(err => {
+        console.error('Background AI analysis failed:', err)
+      })
+    }
   }
 
   private async enhanceFindingWithAI(
@@ -128,6 +131,7 @@ export abstract class BaseAgent {
       evidence: Record<string, any>
       cvss_score?: number
     },
+    findingId: string,
     context: AgentContext
   ) {
     // This runs in background after finding is already reported
@@ -140,14 +144,28 @@ export abstract class BaseAgent {
         }),
       ])
 
+      // Update finding with AI analysis results
+      if (context.onFindingUpdate) {
+        await context.onFindingUpdate(findingId, {
+          ai_reasoning: {
+            reasoning_chain: analysis.reasoning,
+            confidence_score: analysis.confidence / 100,
+            alternative_hypotheses: [],
+          },
+          remediation: {
+            steps: remediation.steps,
+            code_examples: remediation.code_examples,
+            estimated_effort: remediation.estimated_effort,
+            priority: remediation.priority,
+          },
+        })
+      }
+
       // Log AI enhancement completion
       await this.log(context, `AI analysis completed for: ${finding.title}`, 'completed', {
         confidence: analysis.confidence,
         exploitability: analysis.exploitability,
       })
-
-      // Note: In production, you'd update the finding in database here
-      // For now, AI insights are logged but not persisted back
     } catch (error) {
       await this.log(context, `AI analysis failed for: ${finding.title}`, 'error', {
         error: String(error),

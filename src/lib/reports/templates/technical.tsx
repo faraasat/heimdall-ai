@@ -296,7 +296,7 @@ export const TechnicalReport: React.FC<TechnicalReportProps> = ({
                           AI Confidence:
                         </Text>
                         <Text style={styles.text}>
-                          {(finding.ai_reasoning.confidence * 100).toFixed(0)}%
+                          {(finding.ai_reasoning.confidence).toFixed(0)}%
                         </Text>
                       </>
                     )}

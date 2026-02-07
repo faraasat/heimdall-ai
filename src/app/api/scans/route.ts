@@ -173,10 +173,23 @@ async function executeScan(
         })
       },
       onFinding: async (finding) => {
-        await supabase.from('findings').insert({
+        const { data: insertedFinding, error } = await supabase.from('findings').insert({
           scan_id: scanId,
           ...finding,
-        })
+        }).select().single()
+        
+        if (error || !insertedFinding) {
+          console.error('Failed to insert finding:', error)
+          return
+        }
+        
+        return insertedFinding.id
+      },
+      onFindingUpdate: async (findingId, updates) => {
+        await supabase
+          .from('findings')
+          .update(updates)
+          .eq('id', findingId)
       },
       onStatusChange: async (status) => {
         const updates: any = { status }

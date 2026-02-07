@@ -96,10 +96,10 @@ export default function FindingsFilters({ onFilterChange }: FindingsFiltersProps
               variant="outline"
               size="sm"
               onClick={() => setShowFilters(!showFilters)}
-              className="border-gray-600 text-gray-300 hover:bg-gray-800"
+              className="border-gray-600 text-white hover:bg-gray-800"
             >
-              <Filter className="h-4 w-4 mr-2 text-black group-hover:text-white" />
-              <span className="text-black group-hover:text-white">{showFilters ? 'Hide Filters' : 'Show Filters'}</span>
+              <Filter className="h-4 w-4 mr-2 text-white group-hover:text-white" />
+              <span className="text-white group-hover:text-white">{showFilters ? 'Hide Filters' : 'Show Filters'}</span>
               {hasActiveFilters && !showFilters && (
                 <Badge className="ml-2 bg-blue-500/20 text-blue-300 border-blue-500/50">
                   {(selectedSeverities.length + selectedStates.length) || ''}

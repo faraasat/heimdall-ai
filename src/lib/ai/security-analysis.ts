@@ -73,10 +73,15 @@ Respond in JSON format:
     }
   } catch (error) {
     console.error('Error analyzing vulnerability:', error)
+    const errorMessage = error instanceof Error ? error.message : String(error)
     return {
       severity: 'medium',
       confidence: 30,
-      reasoning: ['Error during AI analysis'],
+      reasoning: [
+        'AI analysis failed.',
+        `Error: ${errorMessage}`,
+        'Please check API keys (GROQ_API_KEY or GOOGLE_AI_API_KEY) and try again.'
+      ],
       exploitability: 'medium',
       false_positive_likelihood: 50,
     }
@@ -134,8 +139,13 @@ Respond in JSON format:
     }
   } catch (error) {
     console.error('Error generating remediation:', error)
+    const errorMessage = error instanceof Error ? error.message : String(error)
     return {
-      steps: ['Error generating remediation guidance'],
+      steps: [
+        'AI remediation guidance failed.',
+        `Error: ${errorMessage}`,
+        'Manual review recommended. Check API configuration.'
+      ],
       estimated_effort: 'Unknown',
       priority: 'medium',
     }

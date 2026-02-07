@@ -42,7 +42,7 @@ export function getGroqModel(options: { temperature?: number; modelName?: string
 
   return new ChatGroq({
     apiKey,
-    model: options.modelName || "mixtral-8x7b-32768",
+    model: options.modelName || "llama-3.3-70b-versatile",
     temperature: options.temperature ?? 0.2,
     maxTokens: 2048,
   })
@@ -57,7 +57,7 @@ export function getGeminiModel(options: { temperature?: number; modelName?: stri
 
   return new ChatGoogleGenerativeAI({
     apiKey,
-    model: options.modelName || "gemini-1.5-flash",
+    model: options.modelName || "gemini-1.5-flash-latest",
     temperature: options.temperature ?? 0.2,
     maxOutputTokens: 2048,
   })
