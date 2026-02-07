@@ -7,7 +7,7 @@ import { Shield, ArrowLeft, Code, FileText, Lightbulb, AlertTriangle, CheckCircl
 import Link from "next/link"
 import FindingDetailClient from "@/components/findings/FindingDetailClient"
 
-export default async function FindingDetailPage({ params }: { params: { id: string } }) {
+export default async function FindingDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const supabase = await createClient()
   
   const { data: { user } } = await supabase.auth.getUser()
@@ -16,6 +16,8 @@ export default async function FindingDetailPage({ params }: { params: { id: stri
     redirect('/login')
   }
 
+  const { id } = await params;
+
   // Fetch finding with scan details
   const { data: finding, error: findingError } = await supabase
     .from('findings')
@@ -23,7 +25,7 @@ export default async function FindingDetailPage({ params }: { params: { id: stri
       *,
       scan:scans!inner(id, name, target, user_id)
     `)
-    .eq('id', params.id)
+    .eq('id', id)
     .single()
 
   // Check if user is admin

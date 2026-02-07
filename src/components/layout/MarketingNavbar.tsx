@@ -1,8 +1,13 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Shield, ArrowRight } from "lucide-react";
+import { createClient } from "@/lib/supabase/server";
+import { UserAvatar } from "./UserAvatar";
 
-export function MarketingNavbar() {
+export async function MarketingNavbar() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
   return (
     <header className="border-b border-gray-800/50 backdrop-blur-xl bg-gray-950/60 sticky top-0 z-50 shadow-lg shadow-black/20">
       <div className="container mx-auto px-4 py-4 flex justify-between items-center">
@@ -29,18 +34,24 @@ export function MarketingNavbar() {
           >
             About
           </Link>
-          <Link
-            href="/login"
-            className="text-gray-300 hover:text-white transition-colors"
-          >
-            Login
-          </Link>
-          <Link href="/signup">
-            <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 shadow-lg shadow-blue-500/50 transition-all hover:shadow-xl hover:shadow-blue-500/60">
-              Get Started
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
-          </Link>
+          {user ? (
+            <UserAvatar userEmail={user.email || "User"} />
+          ) : (
+            <>
+              <Link
+                href="/login"
+                className="text-gray-300 hover:text-white transition-colors"
+              >
+                Login
+              </Link>
+              <Link href="/signup">
+                <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 shadow-lg shadow-blue-500/50 transition-all hover:shadow-xl hover:shadow-blue-500/60">
+                  Get Started
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </Link>
+            </>
+          )}
         </nav>
       </div>
     </header>

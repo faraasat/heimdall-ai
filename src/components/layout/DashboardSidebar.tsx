@@ -1,8 +1,8 @@
 "use client"
 
-import { Shield, LayoutDashboard, ScanSearch, AlertTriangle, FileText, MessageSquare, Settings, ShieldCheck, ChevronLeft, ChevronRight } from "lucide-react";
+import { Shield, LayoutDashboard, ScanSearch, AlertTriangle, FileText, MessageSquare, Settings, ShieldCheck, ChevronLeft, ChevronRight, LogOut } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
@@ -19,6 +19,7 @@ const navItems = [
 
 export function DashboardSidebar() {
   const pathname = usePathname();
+  const router = useRouter();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
 
@@ -43,6 +44,13 @@ export function DashboardSidebar() {
       return pathname === "/dashboard";
     }
     return pathname.startsWith(href);
+  };
+
+  const handleLogout = async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push("/");
+    router.refresh();
   };
 
   return (
@@ -126,6 +134,20 @@ export function DashboardSidebar() {
             );
           })}
         </nav>
+
+        {/* Logout Button */}
+        <div className="absolute bottom-4 left-0 right-0 px-4">
+          <Button
+            onClick={handleLogout}
+            variant="outline"
+            className={`w-full text-red-400 border-red-400/30 hover:bg-red-400/10 hover:text-red-300 hover:border-red-400/50 transition-all ${
+              isCollapsed ? 'px-2' : ''
+            }`}
+          >
+            <LogOut className={`h-5 w-5 ${isCollapsed ? '' : 'mr-2'}`} />
+            {!isCollapsed && <span>Logout</span>}
+          </Button>
+        </div>
       </div>
     </aside>
   );

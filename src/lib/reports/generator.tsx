@@ -96,7 +96,7 @@ export async function generateReport(
   }
 
   // Upload to Supabase Storage
-  const fileName = `reports/${userId}/${scanId}/${reportType}-${Date.now()}.pdf`;
+  const fileName = `${userId}/reports/${scanId}/${reportType}-${Date.now()}.pdf`;
 
   const { error: uploadError } = await supabase.storage
     .from('reports')
@@ -110,17 +110,24 @@ export async function generateReport(
     throw new Error('Failed to upload report to storage');
   }
 
-  // Get public URL
-  const {
-    data: { publicUrl },
-  } = supabase.storage.from('reports').getPublicUrl(fileName);
+  // Get signed URL (valid for 1 hour)
+  const { data: signedData, error: signedError } = await supabase.storage
+    .from('reports')
+    .createSignedUrl(fileName, 3600);
+
+  if (signedError || !signedData) {
+    console.error('Error creating signed URL:', signedError);
+    throw new Error('Failed to create signed URL for report');
+  }
+
+  const fileUrl = signedData.signedUrl;
 
   // Save report metadata to database
   const { error: dbError } = await supabase.from('reports').insert({
     scan_id: scanId,
     user_id: userId,
     report_type: reportType,
-    file_url: publicUrl,
+    file_url: fileUrl,
     file_size_bytes: pdfBuffer.length,
   });
 
@@ -130,7 +137,7 @@ export async function generateReport(
   }
 
   return {
-    fileUrl: publicUrl,
+    fileUrl: fileUrl,
     fileSizeBytes: pdfBuffer.length,
   };
 }
