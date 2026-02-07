@@ -219,120 +219,8 @@ export const webAppTools: SecurityTool[] = [
     category: 'webapp',
     isDangerous: false,
     scanTypes: ['webapp', 'api'],
-    features: ['Token Leak Detection', 'CSRF in OAuth', 'Redirect URI Validation
-// Web Application Testing Tools
-export const webAppTools: SecurityTool[] = [
-  {
-    name: 'Puppeteer',
-    package: 'puppeteer',
-    description: 'Headless browser automation for web testing',
-    category: 'webapp',
-    isDangerous: false,
-    scanTypes: ['webapp', 'api'],
-    features: ['DOM Crawling', 'XSS Testing', 'CSRF Detection', 'Session Management']
-  },
-  {
-    name: 'Axios',
-    package: 'axios',
-    description: 'HTTP client for API and web requests',
-    category: 'webapp',
-    isDangerous: false,
-    riskDescription: 'Can cause service disruption and downtime',
-    scanTypes: ['api'],
-    features: ['Concurrent Requests', 'Rate Testing', 'Throughput Analysis', 'Latency Checks']
-  },
-  {
-    name: 'Artillery',
-    package: 'artillery',
-    description: 'Load testing and performance testing',
-    category: 'api',
-    isDangerous: true,
-    riskDescription: 'High load can overwhelm services and cause outages',
-    scanTypes: ['api', 'webapp'],
-    features: ['Scenario Testing', 'WebSocket Testing', 'Performance Metrics']
-  },
-  {
-    name: 'Autocannon',
-    package: 'autocannon',
-    description: 'HTTP/1.1 benchmarking tool',
-    category: 'api',
-    isDangerous: true,
-    riskDescription: 'Can generate significant load and cause service disruption',
-    scanTypes: ['api', 'webapp'],
-    features: ['High-Speed Requests', 'Pipeline Testing', 'Keep-Alive Testing']
-  },
-  {
-    name: 'JWT Cracker',
-    package: 'jwt-cracker',
-    description: 'JWT token cracking',
-    category: 'api',
-    isDangerous: false,
-    scanTypes: ['api', 'webapp'],
-    features: ['Weak Secret Detection', 'Brute Force', 'Algorithm Confusion']
-  },
-  {
-    name: 'GraphQL Security Suite',
-    package: 'graphql-security',
-    description: 'GraphQL security testing suite',
-    category: 'api',
-    isDangerous: false,
-    scanTypes: ['api'],
-    features: ['Injection Testing', 'Batching Attacks', 'Depth Limit Bypas']
-  },
-  {,
-  {
-    name: 'Checkov',
-    package: 'checkov',
-    description: 'Infrastructure as Code security scanning',
-    category: 'cloud',
-    isDangerous: false,
-    scanTypes: ['cloud'],
-    features: ['Terraform Scanning', 'CloudFormation', 'Kubernetes Manifests', 'Policy Violations']
-  },
-  {
-    name: 'Trivy Scanner',
-    package: 'trivy',
-    description: 'Container vulnerability scanner',
-    category: 'cloud',
-    isDangerous: false,
-    scanTypes: ['cloud'],
-    features: ['CVE Detection', 'Misconfiguration', 'Secret Scanning', 'License Detection']
-  }
-    name: 'Cheerio',
-    package: 'cheerio',
-    description: 'jQuery-like HTML parsing for content analysis',
-   ,
-  {
-    name: 'Kube-Hunter',
-    package: 'kube-hunter',
-    description: 'Kubernetes security testing',
-    category: 'cloud',
-    isDangerous: false,
-    scanTypes: ['cloud'],
-    features: ['Cluster Scanning', 'API Server Testing', 'etcd Exposure', 'Dashboard Access']
-  } category: 'webapp',
-    isDangerous: false,
-    scanTypes: ['webapp'],
-    features: ['HTML Parsing', 'Form Discovery', 'Link Extraction', 'Hidden Fields']
-  },
-  {
-    name: 'JWT Tool',
-    package: 'jsonwebtoken',
-    description: 'JWT token testing and manipulation',
-    category: 'webapp',
-    isDangerous: false,
-    scanTypes: ['webapp', 'api'],
-    features: ['Token Decode', 'Signature Verification', 'Algorithm Confusion', 'Expiration Checks']
-  },
-  {
-    name: 'SQL Injection Tester',
-    package: 'sql-injection-test',
-    description: 'SQL injection vulnerability testing',
-    category: 'webapp',
-    isDangerous: true, // Can disrupt database
-    scanTypes: ['webapp'],
-    features: ['Union-based SQLi', 'Blind SQLi', 'Time-based SQLi', 'Error-based SQLi']
-  }
+    features: ['Token Leak Detection', 'CSRF in OAuth', 'Redirect URI Validation']
+    }
 ]
 
 // API Security Testing Tools
@@ -396,11 +284,6 @@ export const cloudTools: SecurityTool[] = [
     features: ['Resource Discovery', 'RBAC Analysis', 'Network Security', 'Blob Security']
   },
   {
-    name: 'Google Cloud',
-    package: '@google-cloud/resource-manager',
-    description: 'Google Cloud Platform SDK',
-   ,
-  {
     name: 'Zigbee Utilities',
     package: 'zigbee',
     description: 'Zigbee protocol utilities',
@@ -418,11 +301,7 @@ export const cloudTools: SecurityTool[] = [
     scanTypes: ['iot'],
     features: ['Register Reading', 'Coil Testing', 'Function Code Fuzzing']
   },
-  {
-    name: 'Binwalk',
-    package: 'binwalk',
-    description: 'Firmware analysis tool',
- 
+]
 
 // Password Attack Tools
 export const passwordTools: SecurityTool[] = [
@@ -484,24 +363,6 @@ export const unifiedTools: SecurityTool[] = [
     isDangerous: false,
     scanTypes: ['network', 'webapp', 'cloud'],
     features: ['CVE Detection', 'Network Scanning', 'Comprehensive Reports']
-  }
-]   category: 'iot',
-    isDangerous: false,
-    scanTypes: ['iot'],
-    features: ['Firmware Extraction', 'File System Analysis', 'Signature Detection']
-  } category: 'cloud',
-    isDangerous: false,
-    scanTypes: ['cloud'],
-    features: ['Project Analysis', 'IAM Policies', 'GCS Security', 'Firewall Rules']
-  },
-  {
-    name: 'CloudSploit',
-    package: 'cloudsploit-scanner',
-    description: 'Multi-cloud security configuration scanner',
-    category: 'cloud',
-    isDangerous: false,
-    scanTypes: ['cloud'],
-    features: ['Config Audit', 'Compliance Checks', 'Best Practices', 'Risk Assessment']
   }
 ]
 

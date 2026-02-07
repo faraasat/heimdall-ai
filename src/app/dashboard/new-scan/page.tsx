@@ -7,10 +7,10 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, Globe, Shield, Zap, Cloud, Cpu, Settings, Check, Loader2, AlertTriangle } from "lucide-react"
+import { ArrowLeft, Globe, Shield, Zap, Cloud, Cpu, Settings, Check, Loader2, AlertTriangle, Wrench } from "lucide-react"
 import Link from "next/link"
 import type { ScanType } from "@/lib/types/database"
-import { hasDangerousTools } from "@/lib/tools/security-tools"
+import { hasDangerousTools, getToolsForScanType } from "@/lib/tools/security-tools"
 
 const scanTypes = [
   {
@@ -575,6 +575,116 @@ export default function NewScanPage() {
                       ) : null
                     })}
                   </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Tools Preview */}
+          {selectedTypes.length > 0 && (
+            <Card className="bg-gradient-to-br from-gray-900/50 to-gray-800/30 border border-gray-700/50 backdrop-blur-sm">
+              <CardHeader>
+                <CardTitle className="text-white flex items-center gap-2">
+                  <Wrench className="h-5 w-5 text-blue-400" />
+                  Security Tools for Selected Scan Types
+                </CardTitle>
+                <CardDescription className="text-gray-400">
+                  {enableDangerousTools 
+                    ? 'All available tools will be used, including high-risk tools'
+                    : 'Only safe reconnaissance tools will be used (dangerous tools disabled)'
+                  }
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {selectedTypes.map((scanType) => {
+                    const safeTools = getToolsForScanType(scanType, true)
+                    const dangerousTools = getToolsForScanType(scanType, false).filter(t => t.isDangerous)
+                    const scanTypeName = scanTypes.find(t => t.id === scanType)?.name || scanType
+
+                    return (
+                      <div key={scanType} className="space-y-2">
+                        <h3 className="text-sm font-semibold text-white flex items-center gap-2">
+                          <Badge className="bg-blue-500/20 text-blue-300 border-blue-500/50">
+                            {scanTypeName}
+                          </Badge>
+                          <span className="text-gray-400">
+                            ({safeTools.length} safe tool{safeTools.length !== 1 ? 's' : ''}{dangerousTools.length > 0 && `, ${dangerousTools.length} high-risk`})
+                          </span>
+                        </h3>
+                        
+                        {/* Safe Tools */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                          {safeTools.map((tool) => (
+                            <div
+                              key={tool.package}
+                              className="p-3 bg-gray-800/40 border border-gray-700/30 rounded-lg"
+                            >
+                              <div className="flex items-start gap-2">
+                                <Shield className="h-4 w-4 text-green-400 shrink-0 mt-0.5" />
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-medium text-white truncate">{tool.name}</p>
+                                  <p className="text-xs text-gray-400 line-clamp-1">{tool.description}</p>
+                                  <div className="flex flex-wrap gap-1 mt-1">
+                                    {tool.features.slice(0, 3).map((feature) => (
+                                      <Badge
+                                        key={feature}
+                                        variant="outline"
+                                        className="text-[10px] px-1.5 py-0 h-4 border-gray-600 text-gray-400"
+                                      >
+                                        {feature}
+                                      </Badge>
+                                    ))}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Dangerous Tools */}
+                        {dangerousTools.length > 0 && (
+                          <div className="mt-3 space-y-2">
+                            <div className="flex items-center gap-2">
+                              <AlertTriangle className="h-4 w-4 text-red-400" />
+                              <h4 className="text-xs font-semibold text-red-300 uppercase">
+                                High-Risk Tools {!enableDangerousTools && '(Disabled)'}
+                              </h4>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                              {dangerousTools.map((tool) => (
+                                <div
+                                  key={tool.package}
+                                  className={`p-3 border rounded-lg ${
+                                    enableDangerousTools
+                                      ? 'bg-red-900/20 border-red-500/30'
+                                      : 'bg-gray-800/20 border-gray-700/30 opacity-50'
+                                  }`}
+                                >
+                                  <div className="flex items-start gap-2">
+                                    <AlertTriangle className={`h-4 w-4 shrink-0 mt-0.5 ${
+                                      enableDangerousTools ? 'text-red-400' : 'text-gray-500'
+                                    }`} />
+                                    <div className="flex-1 min-w-0">
+                                      <p className={`text-sm font-medium truncate ${
+                                        enableDangerousTools ? 'text-white' : 'text-gray-400'
+                                      }`}>{tool.name}</p>
+                                      <p className="text-xs text-gray-400 line-clamp-1">{tool.riskDescription || tool.description}</p>
+                                      {!enableDangerousTools && (
+                                        <Badge className="mt-1 bg-gray-700/50 text-gray-400 border-gray-600 text-[10px]">
+                                          Disabled
+                                        </Badge>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
                 </div>
               </CardContent>
             </Card>
