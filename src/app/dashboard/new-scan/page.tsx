@@ -169,7 +169,11 @@ export default function NewScanPage() {
         <div className="mb-8">
           <Link href="/dashboard">
             <Button variant="outline" size="sm" className="border-blue-500/50 text-blue-400 hover:bg-blue-500/10 mb-4">
-              <ArrowLeft class5xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent mb-3 text-center">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Dashboard
+            </Button>
+          </Link>
+          <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent mb-3 text-center">
             🚀 Launch Security Scan
           </h1>
           <p className="text-gray-400 text-center text-lg">Select testing types and choose between AI-driven or manual assessment</p>
@@ -302,11 +306,8 @@ export default function NewScanPage() {
                 </div>
               </div>
             </CardContent>
-          </Card
-          <p className="text-gray-400">Configure and launch your AI-powered security assessment</p>
-        </div>
+          </Card>
 
-        <form onSubmit={handleSubmit} className="space-y-8">
           {/* Scan Configuration */}
           <Card className="bg-gradient-to-br from-gray-900/50 to-gray-800/30 border border-gray-700/50 backdrop-blur-sm">
             <CardHeader>
@@ -498,22 +499,6 @@ export default function NewScanPage() {
           </div>
         </form>
       </div>
-
-      <style jsx global>{`
-        @keyframes fade-in-up {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        .animate-fade-in-up {
-          animation: fade-in-up 0.5s ease-out;
-        }
-      `}</style>
     </div>
   )
 }

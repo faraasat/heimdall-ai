@@ -283,68 +283,6 @@ export default function Home() {
           </div>
         </div>
       </footer>
-
-      <style jsx global>{`
-        @keyframes fade-in {
-          from {
-            opacity: 0;
-          }
-          to {
-            opacity: 1;
-          }
-        }
-
-        @keyframes fade-in-up {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        @keyframes gradient {
-          0%, 100% {
-            background-size: 200% 200%;
-            background-position: left center;
-          }
-          50% {
-            background-size: 200% 200%;
-            background-position: right center;
-          }
-        }
-
-        .animate-fade-in {
-          animation: fade-in 0.5s ease-out;
-        }
-
-        .animate-fade-in-up {
-          animation: fade-in-up 0.5s ease-out;
-          animation-fill-mode: both;
-        }
-
-        .animate-gradient {
-          animation: gradient 3s ease infinite;
-        }
-
-        .delay-200 {
-          animation-delay: 200ms;
-        }
-
-        .delay-300 {
-          animation-delay: 300ms;
-        }
-
-        .delay-400 {
-          animation-delay: 400ms;
-        }
-
-        .delay-1000 {
-          animation-delay: 1000ms;
-        }
-      `}</style>
     </div>
   )
 }

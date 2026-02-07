@@ -4,9 +4,10 @@ import type { FindingState } from "@/lib/types/database"
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const supabase = await createClient()
     
     // Get authenticated user
@@ -37,10 +38,12 @@ export async function PATCH(
     const { data: finding } = await supabase
       .from('findings')
       .select('id, scan:scans!inner(user_id)')
-      .eq('id', params.id)
+      .eq('id', id)
       .single()
 
-    if (!finding || finding.scan.user_id !== user.id) {
+    const scan = finding?.scan as any
+    
+    if (!finding || !scan || scan.user_id !== user.id) {
       return NextResponse.json({ error: 'Finding not found' }, { status: 404 })
     }
 
@@ -51,7 +54,7 @@ export async function PATCH(
         state,
         updated_at: new Date().toISOString()
       })
-      .eq('id', params.id)
+      .eq('id', id)
       .select()
       .single()
 

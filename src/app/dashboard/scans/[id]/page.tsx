@@ -412,9 +412,9 @@ export default function ScanDetailPage() {
                         {getSeverityBadge(finding.severity)}
                       </div>
                       <p className="text-sm text-gray-400 mb-3">{finding.description}</p>
-                      {finding.location && (
+                      {finding.affected_asset && (
                         <p className="text-xs text-gray-500 mb-3 font-mono bg-gray-900/50 px-2 py-1 rounded border border-gray-700/30">
-                          📍 {finding.location}
+                          📍 {finding.affected_asset}
                         </p>
                       )}
                       <Link href={`/dashboard/findings/${finding.id}`}>
@@ -448,24 +448,6 @@ export default function ScanDetailPage() {
             </CardContent>
           </Card>
         </div>
-
-        {/* Add CSS for custom scrollbar */}
-        <style jsx global>{`
-          .custom-scrollbar::-webkit-scrollbar {
-            width: 6px;
-          }
-          .custom-scrollbar::-webkit-scrollbar-track {
-            background: rgba(31, 41, 55, 0.3);
-            border-radius: 3px;
-          }
-          .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: rgba(59, 130, 246, 0.5);
-            border-radius: 3px;
-          }
-          .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: rgba(59, 130, 246, 0.7);
-          }
-        `}</style>
       </div>
     </div>
   )

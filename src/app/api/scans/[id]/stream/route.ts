@@ -6,8 +6,9 @@ export const dynamic = 'force-dynamic'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params
   const supabase = await createClient()
   
   // Verify user authentication
@@ -21,7 +22,7 @@ export async function GET(
   const { data: scan } = await supabase
     .from('scans')
     .select('*')
-    .eq('id', params.id)
+    .eq('id', id)
     .eq('user_id', user.id)
     .single()
 
@@ -52,7 +53,7 @@ export async function GET(
           const { data: currentScan } = await supabase
             .from('scans')
             .select('*')
-            .eq('id', params.id)
+            .eq('id', id)
             .single()
 
           if (currentScan) {
@@ -65,7 +66,7 @@ export async function GET(
             const { data: logs } = await supabase
               .from('agent_activity_logs')
               .select('*')
-              .eq('scan_id', params.id)
+              .eq('scan_id', id)
               .order('timestamp', { ascending: false })
               .limit(10)
 
@@ -80,7 +81,7 @@ export async function GET(
             const { data: findings } = await supabase
               .from('findings')
               .select('*')
-              .eq('scan_id', params.id)
+              .eq('scan_id', id)
               .order('created_at', { ascending: false })
 
             if (findings) {

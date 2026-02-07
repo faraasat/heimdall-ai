@@ -1388,6 +1388,33 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@radix-ui/react-scroll-area@npm:^1.2.10":
+  version: 1.2.10
+  resolution: "@radix-ui/react-scroll-area@npm:1.2.10"
+  dependencies:
+    "@radix-ui/number": 1.1.1
+    "@radix-ui/primitive": 1.1.3
+    "@radix-ui/react-compose-refs": 1.1.2
+    "@radix-ui/react-context": 1.1.2
+    "@radix-ui/react-direction": 1.1.1
+    "@radix-ui/react-presence": 1.1.5
+    "@radix-ui/react-primitive": 2.1.3
+    "@radix-ui/react-use-callback-ref": 1.1.1
+    "@radix-ui/react-use-layout-effect": 1.1.1
+  peerDependencies:
+    "@types/react": "*"
+    "@types/react-dom": "*"
+    react: ^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc
+    react-dom: ^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc
+  peerDependenciesMeta:
+    "@types/react":
+      optional: true
+    "@types/react-dom":
+      optional: true
+  checksum: da557a86de05801e276838923dc96a7715bd5982ac459b17925fae982d79c26607358f9fe7a8ef8f571f65c0c95da1427ed95a09a752493d8a81ad6d1b50f0da
+  languageName: node
+  linkType: hard
+
 "@radix-ui/react-select@npm:^2.0.0":
   version: 2.2.6
   resolution: "@radix-ui/react-select@npm:2.2.6"
@@ -4202,6 +4229,7 @@ __metadata:
     "@radix-ui/react-dropdown-menu": ^2.0.6
     "@radix-ui/react-label": ^2.0.2
     "@radix-ui/react-progress": ^1.0.3
+    "@radix-ui/react-scroll-area": ^1.2.10
     "@radix-ui/react-select": ^2.0.0
     "@radix-ui/react-separator": ^1.0.3
     "@radix-ui/react-slot": ^1.0.2

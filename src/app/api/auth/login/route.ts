@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createServerClient } from '@supabase/ssr'
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,7 +12,25 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const supabase = await createClient()
+    const response = NextResponse.json({ success: true })
+
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll() {
+            return request.cookies.getAll()
+          },
+          setAll(cookiesToSet: Array<{ name: string; value: string; options?: any }>) {
+            cookiesToSet.forEach(({ name, value, options }) => {
+              request.cookies.set(name, value)
+              response.cookies.set(name, value, options)
+            })
+          },
+        },
+      }
+    )
 
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
@@ -29,7 +47,18 @@ export async function POST(request: NextRequest) {
       .update({ last_login_at: new Date().toISOString() })
       .eq('id', data.user.id)
 
-    return NextResponse.json({ user: data.user, session: data.session })
+    // Create final response with cookies from the initial response
+    const finalResponse = NextResponse.json({ 
+      user: data.user, 
+      session: data.session 
+    })
+
+    // Copy all cookies from the temporary response
+    response.cookies.getAll().forEach(cookie => {
+      finalResponse.cookies.set(cookie.name, cookie.value)
+    })
+
+    return finalResponse
   } catch (error) {
     console.error('Login error:', error)
     return NextResponse.json(

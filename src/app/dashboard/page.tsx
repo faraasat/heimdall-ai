@@ -336,23 +336,6 @@ export default async function DashboardPage() {
           </Card>
         </div>
       </div>
-
-      <style jsx global>{`
-        .animate-fade-in-up {
-          animation: fade-in-up 0.5s ease-out;
-          animation-fill-mode: both;
-        }
-        .delay-100 { animation-delay: 100ms; }
-        .delay-200 { animation-delay: 200ms; }
-        .delay-300 { animation-delay: 300ms; }
-        .delay-400 { animation-delay: 400ms; }
-        .delay-500 { animation-delay: 500ms; }
-        .delay-600 { animation-delay: 600ms; }
-        .delay-700 { animation-delay: 700ms; }
-        .delay-800 { animation-delay: 800ms; }
-        .delay-900 { animation-delay: 900ms; }
-        .delay-1000 { animation-delay: 1000ms; }
-      `}</style>
     </div>
   )
 }

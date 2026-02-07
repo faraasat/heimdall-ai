@@ -1,7 +1,8 @@
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import { Shield, AlertTriangle, TrendingUp, Activity, Zap, Plus } from "lucide-react"
 import Link from "next/link"
 import FindingsList from "@/components/findings/FindingsList"
@@ -153,5 +154,51 @@ export default async function FindingsPage() {
                           <p className="text-sm text-gray-300 mb-3 leading-relaxed">{finding.description}</p>
                           {finding.scan && (
                             <div className="flex flex-wrap gap-3 text-xs text-gray-400 mb-2">
-            Dynamic Findings List with Filters */}
-        <FindingsList initialFindings={findings || []} /
+                              <span>Scan: {finding.scan.name}</span>
+                              <span>•</span>
+                              <span>Target: {finding.scan.target}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12 text-gray-500">
+                <AlertTriangle className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>No findings yet. Start a new scan to discover vulnerabilities.</p>
+                <Link href="/dashboard/new-scan">
+                  <Button className="mt-4 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white border-0">
+                    <Plus className="h-4 w-4 mr-2" />
+                    New Scan
+                  </Button>
+                </Link>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Dynamic Findings List with Filters */}
+        <FindingsList initialFindings={findings || []} />
+      </div>
+    </div>
+  )
+}
+
+function getSeverityBadge(severity: string) {
+  const colors: Record<string, string> = {
+    critical: 'bg-red-500/20 text-red-300 border-red-500/50',
+    high: 'bg-orange-500/20 text-orange-300 border-orange-500/50',
+    medium: 'bg-yellow-500/20 text-yellow-300 border-yellow-500/50',
+    low: 'bg-blue-500/20 text-blue-300 border-blue-500/50',
+    info: 'bg-gray-500/20 text-gray-300 border-gray-500/50'
+  }
+
+  return (
+    <Badge className={`${colors[severity] || colors.info} border text-xs uppercase font-semibold`}>
+      {severity}
+    </Badge>
+  )
+}

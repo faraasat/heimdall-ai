@@ -33,7 +33,12 @@ export default function SignupPage() {
       const data = await response.json()
 
       if (!response.ok) {
-        setError(data.error || 'Signup failed')
+        // Check for rate limit specifically
+        if (response.status === 429) {
+          setError('Email rate limit exceeded. Please wait a few minutes before trying again.')
+        } else {
+          setError(data.error || 'Signup failed')
+        }
         setLoading(false)
         return
       }
@@ -162,22 +167,6 @@ export default function SignupPage() {
           By signing up, you agree to our Terms of Service and Privacy Policy
         </p>
       </div>
-
-      <style jsx global>{`
-        @keyframes fade-in-up {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        .animate-fade-in-up {
-          animation: fade-in-up 0.5s ease-out;
-        }
-      `}</style>
     </div>
   )
 }

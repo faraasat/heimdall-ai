@@ -2,6 +2,7 @@ import { redirect, notFound } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { Shield, ArrowLeft, Code, FileText, Lightbulb, AlertTriangle, CheckCircle, Brain, Target, TrendingUp, Zap, Book } from "lucide-react"
 import Link from "next/link"
 import FindingDetailClient from "@/components/findings/FindingDetailClient"
@@ -95,9 +96,9 @@ function LegacyFindingDetail({ finding }: any) {
             <div>
               <span className="text-gray-500">Target:</span> {finding.scan.target}
             </div>
-            {finding.location && (
+            {finding.affected_asset && (
               <div>
-                <span className="text-gray-500">Location:</span> {finding.location}
+                <span className="text-gray-500">Location:</span> {finding.affected_asset}
               </div>
             )}
           </div>

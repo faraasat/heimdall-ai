@@ -26,6 +26,7 @@ export default function LoginPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
+        credentials: 'include', // Ensure cookies are included
       })
 
       const data = await response.json()
@@ -36,6 +37,11 @@ export default function LoginPage() {
         return
       }
 
+      // Wait a moment for cookies to be properly set
+      await new Promise(resolve => setTimeout(resolve, 100))
+      
+      // Use router.refresh() to revalidate middleware before navigating
+      router.refresh()
       router.push('/dashboard')
     } catch (error) {
       setError('An error occurred. Please try again.')
@@ -67,7 +73,7 @@ export default function LoginPage() {
         <Card className="bg-gradient-to-br from-gray-900/50 to-gray-800/30 border border-gray-700/50 backdrop-blur-sm animate-fade-in-up" style={{ animationDelay: '100ms' }}>
           <CardHeader>
             <CardTitle className="text-white">Login</CardTitle>
-            <CardDescription>Enter your credentials to access your account</CardDescription>
+            <CardDescription className='text-gray-400'>Enter your credentials to access your account</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -135,22 +141,6 @@ export default function LoginPage() {
           By signing in, you agree to our Terms of Service and Privacy Policy
         </p>
       </div>
-
-      <style jsx global>{`
-        @keyframes fade-in-up {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        .animate-fade-in-up {
-          animation: fade-in-up 0.5s ease-out;
-        }
-      `}</style>
     </div>
   )
 }
