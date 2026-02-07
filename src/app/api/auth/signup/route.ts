@@ -1,7 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'
 
-export async function POST(request: NextRequest) {
+export async function POST(request: Request) {
   try {
     const { email, password, full_name } = await request.json()
 
@@ -12,7 +13,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const response = NextResponse.json({ success: true })
+    const cookieStore = await cookies()
 
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -20,13 +21,16 @@ export async function POST(request: NextRequest) {
       {
         cookies: {
           getAll() {
-            return request.cookies.getAll()
+            return cookieStore.getAll()
           },
-          setAll(cookiesToSet: Array<{ name: string; value: string; options?: any }>) {
-            cookiesToSet.forEach(({ name, value, options }) => {
-              request.cookies.set(name, value)
-              response.cookies.set(name, value, options)
-            })
+          setAll(cookiesToSet) {
+            try {
+              cookiesToSet.forEach(({ name, value, options }) => {
+                cookieStore.set(name, value, options)
+              })
+            } catch (error) {
+              console.error('Error setting cookies:', error)
+            }
           },
         },
       }
@@ -44,7 +48,6 @@ export async function POST(request: NextRequest) {
     })
 
     if (error) {
-      // Handle rate limit error with a helpful message
       if (error.message.includes('rate limit') || error.message.includes('Email rate limit exceeded')) {
         return NextResponse.json({ 
           error: 'Too many signup attempts. Please try again in a few minutes, or disable email confirmation in Supabase settings for development.' 
@@ -53,18 +56,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 400 })
     }
 
-    // Create final response with cookies
-    const finalResponse = NextResponse.json({ 
+    return NextResponse.json({ 
       user: data.user,
       message: 'Signup successful. Please check your email for verification.' 
     })
-
-    // Copy all cookies from the temporary response
-    response.cookies.getAll().forEach(cookie => {
-      finalResponse.cookies.set(cookie.name, cookie.value)
-    })
-
-    return finalResponse
   } catch (error) {
     console.error('Signup error:', error)
     return NextResponse.json(

@@ -1,6 +1,7 @@
-# 🎓 Deriv Aegis - Features Documentation
+# 🎓 HeimdallAI - Features Documentation
 
 ## Table of Contents
+
 1. [Explainable AI (XAI)](#explainable-ai-xai)
 2. [Scan Modes](#scan-modes)
 3. [Testing Types](#testing-types)
@@ -13,14 +14,17 @@
 ## 🧠 Explainable AI (XAI)
 
 ### Overview
+
 Our XAI system provides transparent insights into how vulnerabilities are identified, ensuring security professionals can trust and validate AI findings.
 
 ### Components
 
 #### 1. Reasoning Chains
+
 **Purpose**: Show step-by-step logic of vulnerability detection
 
 **Example**:
+
 ```json
 {
   "reasoning_chain": [
@@ -34,34 +38,41 @@ Our XAI system provides transparent insights into how vulnerabilities are identi
 ```
 
 **UI Visualization**:
+
 - Numbered steps with purple gradient badges
 - Each step is clearly articulated
 - Shows progression from detection to confirmation
 
 #### 2. Confidence Scoring
+
 **Purpose**: Quantify certainty level of findings
 
 **Calculation Factors**:
+
 - Evidence strength (40%)
 - Pattern matching accuracy (25%)
 - Historical success rate (20%)
 - Confirmation tests passed (15%)
 
 **Score Ranges**:
+
 - 0.90-1.00: High confidence (confirmed vulnerability)
 - 0.70-0.89: Medium confidence (likely vulnerability)
 - 0.50-0.69: Low confidence (requires manual verification)
 - 0.00-0.49: Very low confidence (potential false positive)
 
 **UI Visualization**:
+
 - Gradient progress bar (purple to blue)
 - Percentage display
 - Color coding based on confidence level
 
 #### 3. Alternative Hypotheses
+
 **Purpose**: Show other possibilities considered during analysis
 
 **Example**:
+
 ```json
 {
   "alternative_hypotheses": [
@@ -73,14 +84,17 @@ Our XAI system provides transparent insights into how vulnerabilities are identi
 ```
 
 **Benefits**:
+
 - Demonstrates thorough analysis
 - Helps security teams consider edge cases
 - Reduces false positive acceptance
 
 #### 4. Interactive Remediation
+
 **Purpose**: Provide actionable fix guidance
 
 **Components**:
+
 - Step-by-step remediation instructions
 - Code examples with syntax highlighting
 - Estimated effort (hours/days)
@@ -88,6 +102,7 @@ Our XAI system provides transparent insights into how vulnerabilities are identi
 - Reference links (OWASP, CWE, NIST)
 
 **Example**:
+
 ```json
 {
   "remediation": {
@@ -113,24 +128,28 @@ Our XAI system provides transparent insights into how vulnerabilities are identi
 ### Agentic Mode (AI-Driven)
 
 **Characteristics**:
+
 - **Autonomous Operation**: AI agents make testing decisions independently
 - **Adaptive**: Adjusts strategy based on findings
 - **Intelligent**: Learns from patterns and adapts techniques
 - **Comprehensive**: Covers more ground faster
 
 **Best For**:
+
 - Large attack surfaces
 - Time-constrained assessments
 - Initial reconnaissance
 - Continuous monitoring
 
 **How It Works**:
+
 1. **Planning Phase**: AI analyzes target and creates test plan
 2. **Execution Phase**: Agents run tests in parallel
 3. **Adaptation Phase**: Adjusts based on findings
 4. **Reporting Phase**: Generates detailed findings with XAI
 
 **Agent Types**:
+
 - **ReconAgent**: Gathers information about target
 - **EnumAgent**: Enumerates services and endpoints
 - **ExploitAgent**: Tests for vulnerabilities
@@ -140,18 +159,21 @@ Our XAI system provides transparent insights into how vulnerabilities are identi
 ### Manual Mode (User-Guided)
 
 **Characteristics**:
+
 - **User Control**: Security professional guides every step
 - **Methodical**: Follows established testing methodologies
 - **Precise**: Targets specific areas of concern
 - **Educational**: Great for training and learning
 
 **Best For**:
+
 - Targeted assessments
 - High-risk systems
 - Compliance requirements
 - Training scenarios
 
 **How It Works**:
+
 1. **Target Selection**: User selects specific targets
 2. **Technique Selection**: Choose from technique library
 3. **Execution**: Run selected tests with parameters
@@ -159,6 +181,7 @@ Our XAI system provides transparent insights into how vulnerabilities are identi
 5. **Iteration**: Repeat with different techniques
 
 **Control Features**:
+
 - Pause/resume scanning
 - Step-by-step execution
 - Manual result validation
@@ -171,11 +194,13 @@ Our XAI system provides transparent insights into how vulnerabilities are identi
 ### 1. Network Penetration Testing
 
 **Scope**:
+
 - External network perimeter
 - Internal network segments
 - Wireless networks
 
 **Techniques**:
+
 - Port scanning (TCP/UDP)
 - Service enumeration
 - Version detection
@@ -185,6 +210,7 @@ Our XAI system provides transparent insights into how vulnerabilities are identi
 - VPN security assessment
 
 **Targets**:
+
 ```json
 {
   "targets": [
@@ -199,6 +225,7 @@ Our XAI system provides transparent insights into how vulnerabilities are identi
 ```
 
 **Deliverables**:
+
 - Network topology map
 - Service inventory
 - Vulnerability assessment report
@@ -208,12 +235,14 @@ Our XAI system provides transparent insights into how vulnerabilities are identi
 ### 2. Web Application Testing
 
 **Scope**:
+
 - Public-facing web applications
 - Admin panels
 - API endpoints
 - Authentication systems
 
 **OWASP Top 10 Coverage**:
+
 1. Broken Access Control
 2. Cryptographic Failures
 3. Injection (SQL, XSS, Command)
@@ -226,6 +255,7 @@ Our XAI system provides transparent insights into how vulnerabilities are identi
 10. Server-Side Request Forgery
 
 **Techniques**:
+
 - SQL Injection (Boolean, Time-based, Union)
 - Cross-Site Scripting (Reflected, Stored, DOM)
 - CSRF testing
@@ -236,6 +266,7 @@ Our XAI system provides transparent insights into how vulnerabilities are identi
 - XML External Entity (XXE)
 
 **Testing Approaches**:
+
 - **Black Box**: No source code access
 - **Grey Box**: Limited documentation provided
 - **White Box**: Full source code review
@@ -243,6 +274,7 @@ Our XAI system provides transparent insights into how vulnerabilities are identi
 ### 3. Mobile Application Testing
 
 **Platforms**:
+
 - iOS (Swift, Objective-C)
 - Android (Java, Kotlin)
 - Hybrid (React Native, Flutter, Ionic)
@@ -250,6 +282,7 @@ Our XAI system provides transparent insights into how vulnerabilities are identi
 **Testing Phases**:
 
 **Phase 1: Static Analysis**
+
 - Source code review
 - Hardcoded credentials detection
 - Insecure data storage patterns
@@ -257,6 +290,7 @@ Our XAI system provides transparent insights into how vulnerabilities are identi
 - Certificate pinning validation
 
 **Phase 2: Dynamic Analysis**
+
 - Runtime behavior monitoring
 - API communication interception
 - Local data storage inspection
@@ -264,12 +298,14 @@ Our XAI system provides transparent insights into how vulnerabilities are identi
 - SSL/TLS validation
 
 **Phase 3: Network Analysis**
+
 - API endpoint security
 - Data transmission encryption
 - Certificate validation
 - Man-in-the-middle testing
 
 **Common Findings**:
+
 - Insecure data storage
 - Weak encryption algorithms
 - Certificate validation issues
@@ -279,6 +315,7 @@ Our XAI system provides transparent insights into how vulnerabilities are identi
 ### 4. Cloud Security Testing
 
 **Cloud Providers**:
+
 - Amazon Web Services (AWS)
 - Microsoft Azure
 - Google Cloud Platform (GCP)
@@ -287,6 +324,7 @@ Our XAI system provides transparent insights into how vulnerabilities are identi
 **Assessment Areas**:
 
 **Identity & Access Management (IAM)**:
+
 - Over-permissioned roles
 - Unused access keys
 - MFA compliance
@@ -294,6 +332,7 @@ Our XAI system provides transparent insights into how vulnerabilities are identi
 - Federation configuration
 
 **Storage Security**:
+
 - S3 bucket permissions
 - Blob storage access
 - Object encryption
@@ -301,6 +340,7 @@ Our XAI system provides transparent insights into how vulnerabilities are identi
 - Versioning configuration
 
 **Network Security**:
+
 - Security group rules
 - Network ACLs
 - VPC configuration
@@ -308,6 +348,7 @@ Our XAI system provides transparent insights into how vulnerabilities are identi
 - NAT gateway security
 
 **Compliance Frameworks**:
+
 - HIPAA
 - SOC 2
 - ISO 27001
@@ -317,6 +358,7 @@ Our XAI system provides transparent insights into how vulnerabilities are identi
 ### 5. IoT Device Testing
 
 **Device Categories**:
+
 - Consumer (smart home, wearables)
 - Industrial (sensors, controllers)
 - Healthcare (medical devices)
@@ -324,6 +366,7 @@ Our XAI system provides transparent insights into how vulnerabilities are identi
 **Testing Layers**:
 
 **Device Layer**:
+
 - Default credentials
 - Firmware vulnerabilities
 - Physical security
@@ -331,18 +374,21 @@ Our XAI system provides transparent insights into how vulnerabilities are identi
 - Update mechanisms
 
 **Communication Layer**:
+
 - Protocol security (MQTT, CoAP, BLE)
 - Encryption implementation
 - Authentication mechanisms
 - Message integrity
 
 **Application Layer**:
+
 - API security
 - Cloud backend security
 - Mobile app security
 - Web interface testing
 
 **Common Vulnerabilities**:
+
 - Weak default passwords
 - Unencrypted communications
 - Insecure firmware updates
@@ -352,6 +398,7 @@ Our XAI system provides transparent insights into how vulnerabilities are identi
 ### 6. Configuration Review
 
 **Systems Covered**:
+
 - Operating systems (Linux, Windows, macOS)
 - Web servers (Apache, Nginx, IIS)
 - Databases (PostgreSQL, MySQL, MongoDB)
@@ -360,6 +407,7 @@ Our XAI system provides transparent insights into how vulnerabilities are identi
 **Review Areas**:
 
 **Security Hardening**:
+
 - Unnecessary services disabled
 - Default accounts removed
 - Strong password policies
@@ -367,6 +415,7 @@ Our XAI system provides transparent insights into how vulnerabilities are identi
 - Logging configured
 
 **Compliance**:
+
 - CIS Benchmarks
 - NIST guidelines
 - Vendor best practices
@@ -379,33 +428,35 @@ Our XAI system provides transparent insights into how vulnerabilities are identi
 ### Architecture
 
 **Server-Sent Events (SSE)**:
+
 ```typescript
 // Client connection
-const eventSource = new EventSource(`/api/scans/${scanId}/stream`)
+const eventSource = new EventSource(`/api/scans/${scanId}/stream`);
 
 eventSource.onmessage = (event) => {
-  const data = JSON.parse(event.data)
+  const data = JSON.parse(event.data);
   // Process scan updates, logs, findings
-}
+};
 ```
 
 ### Log Entry Structure
 
 ```typescript
 interface LogEntry {
-  id: string
-  timestamp: Date
-  level: 'info' | 'success' | 'warning' | 'error'
-  agent?: string          // AI agent name
-  phase?: string          // Testing phase
-  message: string         // Human-readable message
-  target?: string         // Current target
-  technique?: string      // Technique being used
-  progress?: number       // Phase progress (0-100)
+  id: string;
+  timestamp: Date;
+  level: "info" | "success" | "warning" | "error";
+  agent?: string; // AI agent name
+  phase?: string; // Testing phase
+  message: string; // Human-readable message
+  target?: string; // Current target
+  technique?: string; // Technique being used
+  progress?: number; // Phase progress (0-100)
 }
 ```
 
 ### Update Frequency
+
 - **Polling Interval**: 2 seconds
 - **Batch Size**: Up to 50 logs per update
 - **Retention**: Last 100 logs in memory
@@ -414,18 +465,21 @@ interface LogEntry {
 ### Visual Features
 
 **Color Coding**:
+
 - 🟦 Info (Blue): General information
 - 🟩 Success (Green): Completed actions
 - 🟨 Warning (Yellow): Potential issues
 - 🟥 Error (Red): Failed operations
 
 **Current Status Display**:
+
 - Active phase indicator
 - Progress bar (0-100%)
 - Current agent badge
 - Live activity pulse animation
 
 **Log Filtering** (Future):
+
 - By severity level
 - By agent type
 - By technique
@@ -438,12 +492,12 @@ interface LogEntry {
 ### Finding States
 
 ```typescript
-type FindingState = 
-  | 'new'              // Just discovered
-  | 'confirmed'        // Verified as real
-  | 'false_positive'   // Not a real vulnerability
-  | 'remediated'       // Fixed by dev team
-  | 'accepted_risk'    // Known but accepted
+type FindingState =
+  | "new" // Just discovered
+  | "confirmed" // Verified as real
+  | "false_positive" // Not a real vulnerability
+  | "remediated" // Fixed by dev team
+  | "accepted_risk"; // Known but accepted
 ```
 
 ### State Transitions
@@ -456,7 +510,8 @@ new → confirmed → remediated
 
 ### Dynamic Filtering
 
-**Filter  Categories**:
+**Filter Categories**:
+
 1. **Search**: Full-text search across title and description
 2. **Severity**: Critical, High, Medium, Low, Info
 3. **State**: New, Confirmed, False Positive, Remediated, Accepted Risk
@@ -464,6 +519,7 @@ new → confirmed → remediated
 5. **Date Range**: Discovered within timeframe
 
 **Performance Optimization**:
+
 - Client-side filtering with `useMemo`
 - Debounced search input (300ms)
 - Index-based lookups
@@ -475,9 +531,9 @@ new → confirmed → remediated
 // Mark multiple findings as fixed
 await updateFindingsState({
   ids: [1, 2, 3, 4, 5],
-  state: 'remediated',
-  comment: 'Fixed in PR #123'
-})
+  state: "remediated",
+  comment: "Fixed in PR #123",
+});
 ```
 
 ---
@@ -487,6 +543,7 @@ await updateFindingsState({
 ### Tech Stack
 
 **Frontend**:
+
 ```
 Next.js 15 (App Router)
   └─ React 19 (Server Components)
@@ -495,6 +552,7 @@ Next.js 15 (App Router)
 ```
 
 **Backend**:
+
 ```
 Next.js API Routes
   └─ Supabase (PostgreSQL)
@@ -503,6 +561,7 @@ Next.js API Routes
 ```
 
 **Real-Time**:
+
 ```
 Server-Sent Events (SSE)
   └─ EventSource API
@@ -624,11 +683,11 @@ App
 --gradient-danger: linear-gradient(to right, #ef4444, #dc2626);
 
 /* Severity Colors */
---critical: #ef4444;  /* Red */
---high: #f97316;      /* Orange */
---medium: #eab308;    /* Yellow */
---low: #3b82f6;       /* Blue */
---info: #6b7280;      /* Gray */
+--critical: #ef4444; /* Red */
+--high: #f97316; /* Orange */
+--medium: #eab308; /* Yellow */
+--low: #3b82f6; /* Blue */
+--info: #6b7280; /* Gray */
 ```
 
 ### Animation Library
@@ -646,7 +705,8 @@ App
 }
 
 @keyframes pulse-glow {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
     box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
   }
@@ -662,6 +722,7 @@ App
 ## 📊 Performance Optimizations
 
 ### Client-Side
+
 - React Server Components for initial render
 - `useMemo` for expensive computations
 - Lazy loading for large datasets
@@ -669,12 +730,14 @@ App
 - Virtual scrolling for long lists
 
 ### Server-Side
+
 - Supabase connection pooling
 - Query optimization with indexes
 - Pagination for large result sets
 - Caching with stale-while-revalidate
 
 ### Real-Time
+
 - SSE for efficient push updates
 - Batch log processing
 - Log retention limits (100 recent)
@@ -684,4 +747,4 @@ App
 
 **Last Updated**: January 2025
 **Version**: 1.0.0
-**Maintainers**: Deriv Aegis Team
+**Maintainers**: HeimdallAI Team

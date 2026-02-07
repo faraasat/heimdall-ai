@@ -37,11 +37,15 @@ export default function LoginPage() {
         return
       }
 
+      console.log('✅ Login successful, cookies should be set')
+      console.log('📦 Response data:', data)
+      console.log('🍪 All cookies:', document.cookie)
+      
       // Wait a moment for cookies to be properly set
       await new Promise(resolve => setTimeout(resolve, 100))
       
-      // Use router.refresh() to revalidate middleware before navigating
-      router.refresh()
+      // Small delay then navigate
+      await new Promise(resolve => setTimeout(resolve, 50))
       router.push('/dashboard')
     } catch (error) {
       setError('An error occurred. Please try again.')

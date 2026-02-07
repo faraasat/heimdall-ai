@@ -33,10 +33,25 @@ export async function updateSession(request: NextRequest) {
 
   const {
     data: { user },
+    error: authError
   } = await supabase.auth.getUser()
+
+  // Debug logging
+  const allCookies = request.cookies.getAll()
+  const supabaseCookies = allCookies.filter(c => c.name.includes('sb-'))
+  
+  console.log('🔍 Middleware check:', {
+    path: request.nextUrl.pathname,
+    hasUser: !!user,
+    authError: authError?.message,
+    totalCookies: allCookies.length,
+    supabaseCookies: supabaseCookies.length,
+    cookieNames: supabaseCookies.map(c => c.name)
+  })
 
   // Protected routes
   if (!user && request.nextUrl.pathname.startsWith('/dashboard')) {
+    console.log('❌ No user found, redirecting to login')
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     return NextResponse.redirect(url)
@@ -44,6 +59,7 @@ export async function updateSession(request: NextRequest) {
 
   // Redirect authenticated users away from auth pages
   if (user && (request.nextUrl.pathname === '/login' || request.nextUrl.pathname === '/signup')) {
+    console.log('✅ User authenticated, redirecting to dashboard')
     const url = request.nextUrl.clone()
     url.pathname = '/dashboard'
     return NextResponse.redirect(url)
