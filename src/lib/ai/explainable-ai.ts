@@ -104,7 +104,7 @@ export async function analyzeSHAP(finding: {
   severity: string
   affected_asset: string
 }): Promise<SHAPAnalysis> {
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' })
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-lite' })
 
   const prompt = `You are a security analyst using SHAP-like feature importance analysis.
 
@@ -171,7 +171,7 @@ export async function explainWithLIME(finding: {
   evidence: any
   severity: string
 }): Promise<LIMEExplanation> {
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' })
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-lite' })
 
   const prompt = `You are performing LIME-like local interpretable model explanation for a security finding.
 
@@ -230,7 +230,7 @@ export async function generateCounterfactual(finding: {
   severity: string
   affected_asset: string
 }): Promise<CounterfactualScenario> {
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' })
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-lite' })
 
   const prompt = `Generate a counterfactual explanation for this security vulnerability.
 
@@ -304,7 +304,7 @@ export async function extractAnchors(finding: {
   description: string
   evidence: any
 }): Promise<AnchorRule[]> {
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' })
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-lite' })
 
   const prompt = `Extract anchor rules (key conditions) that reliably predict this vulnerability.
 
@@ -353,7 +353,7 @@ export async function analyzePartialDependence(
   finding: { title: string; description: string },
   variable: string
 ): Promise<PDPAnalysis> {
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' })
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-lite' })
 
   const prompt = `Analyze how the variable "${variable}" affects vulnerability risk in this context.
 
@@ -403,7 +403,7 @@ export async function calculateIntegratedGradients(finding: {
   evidence: any
   severity: string
 }): Promise<IntegratedGradient> {
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' })
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-lite' })
 
   const prompt = `Calculate Integrated Gradients attribution for this vulnerability.
 
