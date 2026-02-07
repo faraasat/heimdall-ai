@@ -1,194 +1,149 @@
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
+import { Shield, Zap, Brain, Clock, Target, LineChart } from "lucide-react"
+
 export default function Home() {
-  const modules = [
-    { name: "Web", detail: "Headers, auth paths, misconfig checks" },
-    { name: "API", detail: "Schema drift, auth gaps, rate limits" },
-    { name: "Network", detail: "Open ports, TLS hygiene, banner review" },
-    { name: "Cloud", detail: "Storage exposure, IAM hints" },
-    { name: "IoT", detail: "Firmware version, default creds scan" },
-    { name: "Build", detail: "CI secrets, config leakage" },
-  ];
-
-  const activity = [
-    "Queued scope validation and consent checks",
-    "Recon agent mapping public endpoints",
-    "Web agent running safe header analysis",
-    "API agent comparing schema to live responses",
-    "Cloud agent reviewing public storage signals",
-  ];
-
-  const findings = [
-    {
-      title: "Missing HSTS header",
-      detail: "TLS is enabled, but HSTS is not enforced.",
-      severity: "Medium",
-    },
-    {
-      title: "Public object storage listing",
-      detail: "Bucket index visible without auth.",
-      severity: "High",
-    },
-    {
-      title: "Verbose API error message",
-      detail: "Leaking internal exception names.",
-      severity: "Low",
-    },
-  ];
-
   return (
-    <div className="relative min-h-screen">
-      <div className="pointer-events-none absolute -top-32 left-1/2 h-80 w-[700px] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,rgba(15,118,110,0.22),transparent_65%)] blur-3xl" />
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-16 px-6 py-10 md:px-10">
-        <header className="flex flex-col gap-6">
-          <nav className="flex items-center justify-between">
-            <div className="text-sm font-semibold tracking-[0.2em] text-foreground/70">
-              DERIV AEGIS
-            </div>
-            <div className="flex items-center gap-3 text-xs text-foreground/60">
-              <span className="rounded-full border border-foreground/10 bg-white/70 px-3 py-1">
-                Demo mode
-              </span>
-              <span className="rounded-full border border-foreground/10 bg-white/70 px-3 py-1">
-                Human approval required
-              </span>
-            </div>
+    <div className="min-h-screen bg-gray-950 text-white">
+      {/* Header */}
+      <header className="border-b border-gray-800 backdrop-blur-sm bg-gray-950/80 sticky top-0 z-50">
+        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+          <div className="flex items-center gap-2">
+            <Shield className="h-8 w-8 text-blue-500" />
+            <span className="text-2xl font-bold">HeimdallAI</span>
+          </div>
+          <nav className="flex items-center gap-6">
+            <Link href="#features" className="text-gray-300 hover:text-white transition">
+              Features
+            </Link>
+            <Link href="#testing-types" className="text-gray-300 hover:text-white transition">
+              Testing Types
+            </Link>
+            <Link href="/login" className="text-gray-300 hover:text-white transition">
+              Login
+            </Link>
+            <Link href="/signup">
+              <Button variant="default">Get Started</Button>
+            </Link>
           </nav>
-          <div className="grid gap-8 md:grid-cols-[1.2fr_0.8fr]">
-            <div className="flex flex-col gap-6">
-              <div className="inline-flex w-fit items-center gap-2 rounded-full border border-foreground/10 bg-white/70 px-4 py-2 text-xs text-foreground/70">
-                Autonomous pentesting with human oversight
-              </div>
-              <h1 className="text-4xl font-semibold leading-tight text-foreground md:text-5xl">
-                Safe, explainable security scans for any authorized target.
-              </h1>
-              <p className="max-w-xl text-base leading-7 text-foreground/70">
-                Configure a scoped scan, watch specialized agents collaborate in real
-                time, and export a clear report. Demo results are simulated and
-                non-disruptive.
-              </p>
-              <div className="flex flex-wrap gap-4">
-                <button className="rounded-full bg-foreground px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-foreground/20">
-                  Start Safe Scan
-                </button>
-                <button className="rounded-full border border-foreground/20 bg-white/80 px-6 py-3 text-sm font-semibold text-foreground">
-                  View Sample Report
-                </button>
-              </div>
-            </div>
-            <div className="rounded-3xl border border-foreground/10 bg-white/80 p-6 shadow-xl shadow-black/5">
-              <div className="text-xs font-semibold uppercase tracking-[0.2em] text-foreground/40">
-                Scan configuration
-              </div>
-              <div className="mt-6 flex flex-col gap-4">
-                <label className="text-xs font-semibold text-foreground/60">
-                  Target (web, IP, or range)
-                  <input
-                    className="mt-2 w-full rounded-2xl border border-foreground/10 bg-white px-4 py-3 text-sm text-foreground shadow-sm"
-                    placeholder="https://example.com or 192.0.2.0/24"
-                  />
-                </label>
-                <label className="text-xs font-semibold text-foreground/60">
-                  Safe mode
-                  <select className="mt-2 w-full rounded-2xl border border-foreground/10 bg-white px-4 py-3 text-sm text-foreground shadow-sm">
-                    <option>Strict non-disruptive</option>
-                    <option>Balanced validation</option>
-                    <option>Expanded checks</option>
-                  </select>
-                </label>
-                <div className="flex flex-wrap gap-2">
-                  {modules.map((module) => (
-                    <span
-                      key={module.name}
-                      className="rounded-full border border-foreground/10 bg-foreground/5 px-3 py-1 text-xs font-medium text-foreground"
-                    >
-                      {module.name}
-                    </span>
-                  ))}
-                </div>
-                <label className="flex items-start gap-3 text-xs text-foreground/60">
-                  <input type="checkbox" className="mt-0.5" />
-                  I confirm I am authorized to test this target and accept the
-                  safe-scan policy.
-                </label>
-                <button className="rounded-2xl bg-[var(--accent)] px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-[var(--glow)]">
-                  Queue scan
-                </button>
-              </div>
-            </div>
-          </div>
-        </header>
+        </div>
+      </header>
 
-        <section className="grid gap-8 lg:grid-cols-[1fr_0.9fr]">
-          <div className="rounded-3xl border border-foreground/10 bg-white/80 p-6 shadow-xl shadow-black/5">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold">Agent activity</h2>
-              <span className="rounded-full bg-foreground/5 px-3 py-1 text-xs text-foreground/60">
-                Live
-              </span>
-            </div>
-            <ul className="mt-6 space-y-4 text-sm text-foreground/70">
-              {activity.map((item) => (
-                <li key={item} className="flex items-start gap-3">
-                  <span className="mt-1 h-2.5 w-2.5 rounded-full bg-[var(--accent)]" />
-                  <span>{item}</span>
-                </li>
-              ))}
-            </ul>
-            <div className="mt-8 rounded-2xl border border-dashed border-foreground/15 bg-foreground/5 p-4 text-xs text-foreground/60">
-              Demo note: results shown are simulated to demonstrate reporting and
-              agent collaboration.
-            </div>
+      {/* Hero Section */}
+      <section className="container mx-auto px-4 py-20 text-center">
+        <div className="max-w-4xl mx-auto space-y-6">
+          <h1 className="text-6xl font-bold bg-gradient-to-r from-blue-400 to-purple-600 bg-clip-text text-transparent">
+            AI-Powered Penetration Testing That Never Sleeps
+          </h1>
+          <p className="text-xl text-gray-400">
+            Continuous, intelligent security testing using agentic AI. Discover vulnerabilities 
+            before attackers do with 24/7 autonomous security assessment.
+          </p>
+          <div className="flex gap-4 justify-center pt-4">
+            <Link href="/signup">
+              <Button size="lg" className="text-lg px-8">
+                Start Free Scan
+              </Button>
+            </Link>
+            <Link href="#features">
+              <Button size="lg" variant="outline" className="text-lg px-8">
+                Learn More
+              </Button>
+            </Link>
           </div>
+        </div>
+      </section>
 
-          <div className="rounded-3xl border border-foreground/10 bg-white/80 p-6 shadow-xl shadow-black/5">
-            <h2 className="text-xl font-semibold">Findings summary</h2>
-            <div className="mt-6 space-y-4">
-              {findings.map((finding) => (
-                <div
-                  key={finding.title}
-                  className="rounded-2xl border border-foreground/10 bg-white px-4 py-4"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="text-sm font-semibold text-foreground">
-                      {finding.title}
-                    </div>
-                    <span className="rounded-full bg-[var(--warm)]/30 px-3 py-1 text-xs font-semibold text-foreground">
-                      {finding.severity}
-                    </span>
-                  </div>
-                  <p className="mt-2 text-xs leading-5 text-foreground/60">
-                    {finding.detail}
-                  </p>
-                </div>
-              ))}
-            </div>
-            <button className="mt-6 w-full rounded-2xl border border-foreground/15 bg-foreground px-4 py-3 text-sm font-semibold text-white">
-              Export PDF report
-            </button>
+      {/* Features */}
+      <section id="features" className="container mx-auto px-4 py-20">
+        <h2 className="text-4xl font-bold text-center mb-12">Why HeimdallAI?</h2>
+        <div className="grid md:grid-cols-3 gap-8">
+          <div className="p-6 border border-gray-800 rounded-xl bg-gray-900/50">
+            <Brain className="h-12 w-12 text-blue-500 mb-4" />
+            <h3 className="text-xl font-semibold mb-2">AI-Powered Intelligence</h3>
+            <p className="text-gray-400">
+              Advanced LLMs reason about vulnerabilities, chain attack paths, and filter false positives with human-like intelligence.
+            </p>
           </div>
-        </section>
+          <div className="p-6 border border-gray-800 rounded-xl bg-gray-900/50">
+            <Clock className="h-12 w-12 text-purple-500 mb-4" />
+            <h3 className="text-xl font-semibold mb-2">Continuous Monitoring</h3>
+            <p className="text-gray-400">
+              24/7 autonomous testing eliminates blind spots between manual pentests. Security that never sleeps.
+            </p>
+          </div>
+          <div className="p-6 border border-gray-800 rounded-xl bg-gray-900/50">
+            <Zap className="h-12 w-12 text-yellow-500 mb-4" />
+            <h3 className="text-xl font-semibold mb-2">10x Faster</h3>
+            <p className="text-gray-400">
+              Results in minutes instead of weeks. Scale testing across your entire infrastructure instantly.
+            </p>
+          </div>
+          <div className="p-6 border border-gray-800 rounded-xl bg-gray-900/50">
+            <Target className="h-12 w-12 text-red-500 mb-4" />
+            <h3 className="text-xl font-semibold mb-2">Comprehensive Coverage</h3>
+            <p className="text-gray-400">
+              6 specialized agents cover network, web, API, cloud, IoT, and configuration security in a single platform.
+            </p>
+          </div>
+          <div className="p-6 border border-gray-800 rounded-xl bg-gray-900/50">
+            <LineChart className="h-12 w-12 text-green-500 mb-4" />
+            <h3 className="text-xl font-semibold mb-2">Actionable Reports</h3>
+            <p className="text-gray-400">
+              Get prioritized findings with step-by-step remediation guidance. Reports ready for your CISO and auditors.
+            </p>
+          </div>
+          <div className="p-6 border border-gray-800 rounded-xl bg-gray-900/50">
+            <Shield className="h-12 w-12 text-cyan-500 mb-4" />
+            <h3 className="text-xl font-semibold mb-2">Explainable AI</h3>
+            <p className="text-gray-400">
+              Every decision is transparent with reasoning chains. You understand exactly why each vulnerability matters.
+            </p>
+          </div>
+        </div>
+      </section>
 
-        <section className="grid gap-6 md:grid-cols-3">
-          {modules.map((module) => (
-            <div
-              key={module.name}
-              className="rounded-3xl border border-foreground/10 bg-white/80 p-6 shadow-lg shadow-black/5"
-            >
-              <div className="text-xs font-semibold uppercase tracking-[0.2em] text-foreground/40">
-                {module.name}
-              </div>
-              <p className="mt-4 text-sm text-foreground/70">{module.detail}</p>
-              <p className="mt-6 text-xs text-foreground/50">
-                Safe mode only. No intrusive payloads.
-              </p>
+      {/* Testing Types */}
+      <section id="testing-types" className="container mx-auto px-4 py-20 bg-gray-900/20">
+        <h2 className="text-4xl font-bold text-center mb-12">6 Specialized Testing Modes</h2>
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+          {[
+            { name: 'Network Penetration', desc: 'Port scanning, service detection, network vulnerabilities' },
+            { name: 'Web Application', desc: 'OWASP Top 10, authentication, business logic flaws' },
+            { name: 'API Security', desc: 'REST, GraphQL, authentication, authorization testing' },
+            { name: 'Cloud Security', desc: 'AWS, Azure, GCP configuration and IAM review' },
+            { name: 'IoT Security', desc: 'Firmware analysis, protocol testing, device hardening' },
+            { name: 'Config Review', desc: 'Dependency scanning, IaC security, baseline compliance' },
+          ].map((type) => (
+            <div key={type.name} className="p-6 border border-gray-800 rounded-xl bg-gray-900/50 hover:border-blue-500 transition">
+              <h3 className="text-lg font-semibold mb-2">{type.name}</h3>
+              <p className="text-sm text-gray-400">{type.desc}</p>
             </div>
           ))}
-        </section>
+        </div>
+      </section>
 
-        <footer className="flex flex-col gap-4 border-t border-foreground/10 py-6 text-xs text-foreground/50 md:flex-row md:items-center md:justify-between">
-          <span>Deriv Aegis MVP - Continuous, authorized security assurance.</span>
-          <span>LLM routing: Groq primary, Gemini/HF fallback.</span>
-        </footer>
-      </div>
+      {/* CTA */}
+      <section className="container mx-auto px-4 py-20 text-center">
+        <div className="max-w-3xl mx-auto space-y-6">
+          <h2 className="text-4xl font-bold">Ready to Secure Your Infrastructure?</h2>
+          <p className="text-xl text-gray-400">
+            Start with a free scan and see what vulnerabilities AI can discover in minutes.
+          </p>
+          <Link href="/signup">
+            <Button size="lg" className="text-lg px-12">
+              Start Free Scan Now
+            </Button>
+          </Link>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="border-t border-gray-800 py-8">
+        <div className="container mx-auto px-4 text-center text-gray-400">
+          <p>&copy; 2026 HeimdallAI. Built for Deriv AI Talent Sprint Hackathon.</p>
+        </div>
+      </footer>
     </div>
-  );
+  )
 }

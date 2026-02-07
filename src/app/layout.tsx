@@ -1,24 +1,12 @@
 import type { Metadata } from "next";
-import { IBM_Plex_Mono, Space_Grotesk } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
 
-const spaceGrotesk = Space_Grotesk({
-  variable: "--font-space-grotesk",
-  subsets: ["latin"],
-  display: "swap",
-});
-
-const plexMono = IBM_Plex_Mono({
-  variable: "--font-plex-mono",
-  subsets: ["latin"],
-  weight: ["400", "600"],
-  display: "swap",
-});
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Deriv - Autonomous Pentesting MVP",
-  description:
-    "Safe, explainable autonomous pentesting with human approval and real-time agent activity.",
+  title: "HeimdallAI - AI-Powered Penetration Testing",
+  description: "Continuous, intelligent security testing using agentic AI that never sleeps",
 };
 
 export default function RootLayout({
@@ -27,12 +15,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body
-        className={`${spaceGrotesk.variable} ${plexMono.variable} antialiased`}
-      >
-        {children}
-      </body>
+    <html lang="en" className="dark">
+      <body className={inter.className}>{children}</body>
     </html>
   );
 }
