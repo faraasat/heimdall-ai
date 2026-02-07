@@ -157,7 +157,7 @@ export class WebAppAgent extends BaseAgent {
       
       // Only test if there are query parameters
       if (urlObj.searchParams.toString()) {
-        let vulnerableParams = []
+        const vulnerableParams = []
 
         for (const [param, value] of urlObj.searchParams) {
           for (const payload of sqlPayloads) {
@@ -229,7 +229,7 @@ export class WebAppAgent extends BaseAgent {
       // Look for potential XSS vectors
       const inputFields = $('input, textarea')
       const forms = $('form')
-      let vulnerabilities = []
+      const vulnerabilities = []
 
       // Check if user input is reflected in the page
       const urlObj = new URL(url)

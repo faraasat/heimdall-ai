@@ -1,4 +1,4 @@
-export type ScanType = 'network' | 'webapp' | 'api' | 'cloud' | 'iot' | 'config'
+export type ScanType = 'network' | 'webapp' | 'api' | 'cloud' | 'iot' | 'config' | 'mobile'
 export type ScanStatus = 'pending' | 'running' | 'completed' | 'failed' | 'cancelled'
 export type FindingSeverity = 'critical' | 'high' | 'medium' | 'low' | 'info'
 export type FindingState = 'new' | 'confirmed' | 'false_positive' | 'remediated' | 'accepted_risk'

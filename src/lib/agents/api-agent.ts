@@ -103,7 +103,7 @@ export class APIAgent extends BaseAgent {
         { payload: '<xml><!ENTITY xxe SYSTEM "file:///etc/passwd">]><foo>&xxe;</foo>', type: 'XXE', severity: 'high' as const },
       ]
 
-      let vulnerableToPayloads = []
+      const vulnerableToPayloads = []
 
       for (const test of payloads) {
         try {

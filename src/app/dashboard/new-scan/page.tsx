@@ -7,9 +7,10 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, Globe, Shield, Zap, Cloud, Cpu, Settings, Check, Loader2 } from "lucide-react"
+import { ArrowLeft, Globe, Shield, Zap, Cloud, Cpu, Settings, Check, Loader2, AlertTriangle } from "lucide-react"
 import Link from "next/link"
 import type { ScanType } from "@/lib/types/database"
+import { hasDangerousTools } from "@/lib/tools/security-tools"
 
 const scanTypes = [
   {
@@ -23,6 +24,7 @@ const scanTypes = [
     hoverBorder: 'hover:border-blue-400/60',
     features: ['Port Scanning', 'Service Enumeration', 'Vulnerability Assessment', 'Network Mapping'],
     subtypes: ['External', 'Internal', 'Wireless'],
+    comingSoon: false,
   },
   {
     id: 'webapp' as ScanType,
@@ -35,6 +37,7 @@ const scanTypes = [
     hoverBorder: 'hover:border-purple-400/60',
     features: ['SQL Injection', 'XSS', 'CSRF', 'Authentication Bypass'],
     subtypes: ['Black Box', 'Grey Box', 'White Box'],
+    comingSoon: false,
   },
   {
     id: 'api' as ScanType,
@@ -47,6 +50,20 @@ const scanTypes = [
     hoverBorder: 'hover:border-green-400/60',
     features: ['Auth Checks', 'Broken Access Control', 'Rate Limits', 'Data Exposure'],
     subtypes: ['REST', 'GraphQL', 'gRPC'],
+    comingSoon: false,
+  },
+  {
+    id: 'mobile' as ScanType,
+    name: 'Mobile Application',
+    description: 'iOS/Android app security testing',
+    icon: Cpu,
+    emoji: '📱',
+    color: 'from-indigo-500 to-violet-500',
+    borderColor: 'border-indigo-500/30',
+    hoverBorder: 'hover:border-indigo-400/60',
+    features: ['Static Analysis', 'Dynamic Testing', 'API Security', 'Data Storage'],
+    subtypes: ['iOS', 'Android', 'React Native', 'Flutter'],
+    comingSoon: true,
   },
   {
     id: 'cloud' as ScanType,
@@ -59,6 +76,7 @@ const scanTypes = [
     hoverBorder: 'hover:border-orange-400/60',
     features: ['IAM Review', 'Storage Security', 'Network Config', 'Compliance'],
     subtypes: ['AWS', 'Azure', 'GCP', 'Multi-Cloud'],
+    comingSoon: false,
   },
   {
     id: 'iot' as ScanType,
@@ -71,6 +89,7 @@ const scanTypes = [
     hoverBorder: 'hover:border-pink-400/60',
     features: ['Device Security', 'Protocol Analysis', 'Firmware Review', 'Hardware Hacking'],
     subtypes: ['Consumer', 'Industrial', 'Healthcare'],
+    comingSoon: true,
   },
   {
     id: 'config' as ScanType,
@@ -83,6 +102,7 @@ const scanTypes = [
     hoverBorder: 'hover:border-slate-400/60',
     features: ['Security Hardening', 'Best Practices', 'Compliance Check', 'Policy Review'],
     subtypes: ['Server', 'Database', 'Network', 'Application'],
+    comingSoon: false,
   },
 ]
 
@@ -98,8 +118,16 @@ export default function NewScanPage() {
   const [naturalLanguage, setNaturalLanguage] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [enableDangerousTools, setEnableDangerousTools] = useState(false)
+
+  const showDangerousToolsWarning = hasDangerousTools(selectedTypes)
 
   const toggleScanType = (typeId: ScanType) => {
+    // Disable Mobile and IoT for now
+    if (typeId === 'mobile' || typeId === 'iot') {
+      return
+    }
+    
     setSelectedTypes(prev =>
       prev.includes(typeId)
         ? prev.filter(t => t !== typeId)
@@ -136,6 +164,7 @@ export default function NewScanPage() {
           testing_approach: approach,
           intensity,
           timeout_seconds: timeoutSeconds,
+          enable_dangerous_tools: enableDangerousTools,
           scan_types: selectedTypes,
           scan_type: selectedTypes[0], // For backward compatibility
           natural_language: naturalLanguage || undefined,
@@ -384,30 +413,39 @@ export default function NewScanPage() {
               {scanTypes.map((type) => {
                 const Icon = type.icon
                 const isSelected = selectedTypes.includes(type.id)
+                const isDisabled = type.comingSoon
 
                 return (
                   <button
                     key={type.id}
                     type="button"
                     onClick={() => toggleScanType(type.id)}
-                    className={`text-left transition-all duration-300 ${isSelected ? 'scale-105' : 'hover:scale-102'}`}
+                    disabled={isDisabled}
+                    className={`text-left transition-all duration-300 relative ${
+                      isDisabled ? 'opacity-60 cursor-not-allowed' : isSelected ? 'scale-105' : 'hover:scale-102'
+                    }`}
                   >
                     <Card
                       className={`h-full bg-gradient-to-br from-gray-900/50 to-gray-800/30 border backdrop-blur-sm ${
                         isSelected
                           ? `${type.borderColor} border-2 shadow-lg`
-                          : `border-gray-700/50 ${type.hoverBorder}`
+                          : `border-gray-700/50 ${!isDisabled && type.hoverBorder}`
                       }`}
                     >
                       <CardHeader>
                         <div className="flex items-start justify-between mb-3">
-                          <div className={`p-3 bg-gradient-to-br ${type.color} rounded-xl`}>
+                          <div className={`p-3 bg-gradient-to-br ${type.color} rounded-xl ${isDisabled && 'grayscale'}`}>
                             <Icon className="h-6 w-6 text-white" />
                           </div>
-                          {isSelected && (
+                          {isSelected && !isDisabled && (
                             <div className="p-1 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full">
                               <Check className="h-4 w-4 text-white" />
                             </div>
+                          )}
+                          {isDisabled && (
+                            <Badge className="bg-yellow-500/20 text-yellow-300 border-yellow-500/50 text-xs">
+                              Coming Soon
+                            </Badge>
                           )}
                         </div>
                         <CardTitle className="text-white text-lg">{type.name}</CardTitle>
@@ -455,6 +493,53 @@ export default function NewScanPage() {
                 className="bg-gray-800/50 border-purple-500/30 text-white placeholder:text-gray-500 focus:border-purple-500"
               />
             </CardContent>
+
+          {/* Dangerous Tools Warning */}
+          {showDangerousToolsWarning && (
+            <Card className="bg-gradient-to-br from-red-900/20 to-orange-900/20 border border-red-500/30 backdrop-blur-sm">
+              <CardHeader>
+                <CardTitle className="text-white flex items-center gap-2">
+                  <AlertTriangle className="h-5 w-5 text-red-400" />
+                  Safety Warning: High-Risk Tools Available
+                </CardTitle>
+                <CardDescription className="text-gray-400">
+                  Some tests may use tools that could cause service disruption or denial of service
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-start gap-3 p-4 bg-red-500/10 rounded-lg border border-red-500/20">
+                  <AlertTriangle className="h-5 w-5 text-red-400 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-white font-semibold mb-2">⚠️ High-Risk Tools Include:</p>
+                    <ul className="text-sm text-gray-300 space-y-1 list-disc list-inside">
+                      <li><strong>SQL Injection Testing</strong> - May disrupt database operations</li>
+                      <li><strong>Load Testing</strong> - Can cause temporary service unavailability</li>
+                      <li><strong>Fuzzing Tools</strong> - May trigger rate limiting or crashes</li>
+                    </ul>
+                    <p className="text-sm text-gray-400 mt-3">
+                      By default, only safe reconnaissance tools will be used. Enable high-risk tools only if you have authorization.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 p-4 bg-gray-800/50 rounded-lg border border-gray-700/50">
+                  <input
+                    type="checkbox"
+                    id="enableDangerousTools"
+                    checked={enableDangerousTools}
+                    onChange={(e) => setEnableDangerousTools(e.target.checked)}
+                    className="w-5 h-5 rounded border-gray-600 text-red-500 focus:ring-2 focus:ring-red-500/20"
+                  />
+                  <label htmlFor="enableDangerousTools" className="text-white cursor-pointer flex-1">
+                    <span className="font-semibold">I understand the risks and have proper authorization</span>
+                    <span className="block text-sm text-gray-400 mt-1">
+                      Enable tools that may cause service disruption (SQL injection, load testing, aggressive fuzzing)
+                    </span>
+                  </label>
+                </div>
+              </CardContent>
+            </Card>
+          )}
           </Card>
 
           {/* Selected Scan Summary */}
