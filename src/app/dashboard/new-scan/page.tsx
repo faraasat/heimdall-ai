@@ -89,7 +89,7 @@ const scanTypes = [
     hoverBorder: 'hover:border-pink-400/60',
     features: ['Device Security', 'Protocol Analysis', 'Firmware Review', 'Hardware Hacking'],
     subtypes: ['Consumer', 'Industrial', 'Healthcare'],
-    comingSoon: true,
+    comingSoon: false,
   },
   {
     id: 'config' as ScanType,
@@ -119,12 +119,17 @@ export default function NewScanPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [enableDangerousTools, setEnableDangerousTools] = useState(false)
+  const [greyBoxContext, setGreyBoxContext] = useState("")
+  const [greyBoxUrls, setGreyBoxUrls] = useState("")
+  const [whiteBoxContext, setWhiteBoxContext] = useState("")
+  const [whiteBoxUrls, setWhiteBoxUrls] = useState("")
 
   const showDangerousToolsWarning = hasDangerousTools(selectedTypes)
 
   const toggleScanType = (typeId: ScanType) => {
-    // Disable Mobile and IoT for now
-    if (typeId === 'mobile' || typeId === 'iot') {
+    // Check if scan type is coming soon
+    const scanType = scanTypes.find(t => t.id === typeId)
+    if (scanType?.comingSoon) {
       return
     }
     
@@ -168,6 +173,10 @@ export default function NewScanPage() {
           scan_types: selectedTypes,
           scan_type: selectedTypes[0], // For backward compatibility
           natural_language: naturalLanguage || undefined,
+          grey_box_context: approach === 'greybox' ? greyBoxContext : undefined,
+          grey_box_urls: approach === 'greybox' ? greyBoxUrls : undefined,
+          white_box_context: approach === 'whitebox' ? whiteBoxContext : undefined,
+          white_box_urls: approach === 'whitebox' ? whiteBoxUrls : undefined,
         }),
       })
 
@@ -371,6 +380,70 @@ export default function NewScanPage() {
                 />
                 <p className="text-xs text-gray-500 mt-1">Enter the target domain, URL, or IP address to scan</p>
               </div>
+
+              {/* Grey Box Testing Context */}
+              {approach === 'greybox' && (
+                <div className="space-y-4 p-4 rounded-lg bg-blue-900/20 border border-blue-500/30">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="text-2xl">⬜</div>
+                    <h3 className="text-white font-semibold">Grey Box Testing Context</h3>
+                  </div>
+                  <div>
+                    <Label htmlFor="greyBoxContext" className="text-gray-300">Additional Context & Credentials</Label>
+                    <textarea
+                      id="greyBoxContext"
+                      placeholder="Provide partial knowledge: authentication details, API keys, limited documentation, etc."
+                      value={greyBoxContext}
+                      onChange={(e) => setGreyBoxContext(e.target.value)}
+                      className="mt-2 w-full min-h-[100px] rounded-md bg-gray-800/50 border border-gray-700 text-white placeholder:text-gray-500 focus:border-blue-500 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+                    />
+                    <p className="text-xs text-gray-400 mt-1">Example: Test user credentials, partial API documentation, known endpoints</p>
+                  </div>
+                  <div>
+                    <Label htmlFor="greyBoxUrls" className="text-gray-300">Known URLs/Endpoints (one per line)</Label>
+                    <textarea
+                      id="greyBoxUrls"
+                      placeholder="https://example.com/api/users&#10;https://example.com/admin&#10;https://example.com/api/v1/docs"
+                      value={greyBoxUrls}
+                      onChange={(e) => setGreyBoxUrls(e.target.value)}
+                      className="mt-2 w-full min-h-[80px] rounded-md bg-gray-800/50 border border-gray-700 text-white placeholder:text-gray-500 focus:border-blue-500 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/30 font-mono text-sm"
+                    />
+                    <p className="text-xs text-gray-400 mt-1">Provide known URLs, endpoints, or resources to target</p>
+                  </div>
+                </div>
+              )}
+
+              {/* White Box Testing Context */}
+              {approach === 'whitebox' && (
+                <div className="space-y-4 p-4 rounded-lg bg-purple-900/20 border border-purple-500/30">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="text-2xl">□</div>
+                    <h3 className="text-white font-semibold">White Box Testing Context</h3>
+                  </div>
+                  <div>
+                    <Label htmlFor="whiteBoxContext" className="text-gray-300">Full Access Context & Documentation</Label>
+                    <textarea
+                      id="whiteBoxContext"
+                      placeholder="Provide full knowledge: source code repository, architecture diagrams, database schemas, admin credentials, complete API documentation, etc."
+                      value={whiteBoxContext}
+                      onChange={(e) => setWhiteBoxContext(e.target.value)}
+                      className="mt-2 w-full min-h-[120px] rounded-md bg-gray-800/50 border border-gray-700 text-white placeholder:text-gray-500 focus:border-blue-500 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500/30"
+                    />
+                    <p className="text-xs text-gray-400 mt-1">Example: GitHub repo URLs, architecture docs, database credentials, complete API specs</p>
+                  </div>
+                  <div>
+                    <Label htmlFor="whiteBoxUrls" className="text-gray-300">Documentation & Code Repository URLs (one per line)</Label>
+                    <textarea
+                      id="whiteBoxUrls"
+                      placeholder="https://github.com/company/repo&#10;https://docs.example.com/internal-api&#10;https://wiki.example.com/architecture&#10;https://swagger.example.com/api-spec"
+                      value={whiteBoxUrls}
+                      onChange={(e) => setWhiteBoxUrls(e.target.value)}
+                      className="mt-2 w-full min-h-[100px] rounded-md bg-gray-800/50 border border-gray-700 text-white placeholder:text-gray-500 focus:border-blue-500 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500/30 font-mono text-sm"
+                    />
+                    <p className="text-xs text-gray-400 mt-1">Provide repository URLs, documentation, specs, or any reference materials</p>
+                  </div>
+                </div>
+              )}
 
               <div className="grid md:grid-cols-2 gap-4">
                 <div>

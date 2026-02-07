@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Loader2, CheckCircle, AlertTriangle, Info, Zap, Target, Brain, Activity } from "lucide-react"
+import { Loader2, CheckCircle, AlertTriangle, Info, Zap, Target, Brain, Activity, Wrench } from "lucide-react"
 
 interface LogEntry {
   id: string
@@ -15,6 +15,8 @@ interface LogEntry {
   target?: string
   technique?: string
   progress?: number
+  tool?: string
+  package?: string
 }
 
 interface ScanLoggingProps {
@@ -59,7 +61,9 @@ export default function ScanLogging({ scanId, isActive = true, onComplete }: Sca
             message: log.message,
             target: log.target,
             technique: log.technique,
-            progress: log.progress
+            progress: log.progress,
+            tool: log.details?.tool,
+            package: log.details?.package,
           }))
 
           setLogs(prev => [...prev, ...newLogs].slice(-100)) // Keep last 100 logs
@@ -199,14 +203,30 @@ export default function ScanLogging({ scanId, isActive = true, onComplete }: Sca
               logs.map((log) => (
                 <div
                   key={log.id}
-                  className="flex items-start gap-3 p-3 rounded-lg bg-gray-900/50 border border-gray-800/50 hover:border-gray-700/50 transition-colors"
+                  className={`flex items-start gap-3 p-3 rounded-lg transition-colors ${
+                    log.tool 
+                      ? 'bg-blue-900/30 border border-blue-500/30 hover:border-blue-400/50' 
+                      : 'bg-gray-900/50 border border-gray-800/50 hover:border-gray-700/50'
+                  }`}
                 >
-                  <div className="mt-0.5">{getLevelIcon(log.level)}</div>
+                  <div className="mt-0.5">
+                    {log.tool ? (
+                      <Wrench className="h-4 w-4 text-blue-400" />
+                    ) : (
+                      getLevelIcon(log.level)
+                    )}
+                  </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
                       <span className="text-xs text-gray-500 font-mono">
                         {log.timestamp.toLocaleTimeString()}
                       </span>
+                      {log.tool && (
+                        <Badge className="text-xs bg-blue-500/20 text-blue-300 border-blue-500/50">
+                          <Wrench className="h-3 w-3 mr-1" />
+                          {log.tool}
+                        </Badge>
+                      )}
                       {log.phase && (
                         <Badge variant="outline" className="text-xs border-gray-600 text-gray-400">
                           {log.phase}

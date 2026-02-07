@@ -29,6 +29,12 @@ export class CloudAgent extends BaseAgent {
   }
 
   private async testIAMPolicies(context: AgentContext) {
+    const tools = this.getToolsForAgent('cloud')
+    const iamTool = tools.find(t => t.name.includes('AWS SDK') || t.name.includes('CloudSploit'))
+    
+    if (iamTool) {
+      await this.logToolUsage(context, iamTool, 'starting', { test: 'iam-policies' })
+    }
     await this.log(context, 'Reviewing IAM policies and permissions', 'running')
 
     try {
@@ -61,12 +67,22 @@ export class CloudAgent extends BaseAgent {
       })
 
       await this.log(context, 'IAM policy review completed', 'completed')
+      
+      if (iamTool) {
+        await this.logToolUsage(context, iamTool, 'completed', { result: 'IAM policy scan completed' })
+      }
     } catch (error) {
       await this.log(context, `IAM policy test error: ${error}`, 'error')
     }
   }
 
   private async testStorageSecurity(context: AgentContext) {
+    const tools = this.getToolsForAgent('cloud')
+    const storageTool = tools.find(t => t.name.includes('ScoutSuite') || t.features.includes('Storage Security'))
+    
+    if (storageTool) {
+      await this.logToolUsage(context, storageTool, 'starting', { test: 'storage-buckets' })
+    }
     await this.log(context, 'Testing cloud storage security', 'running')
 
     try {
@@ -99,6 +115,10 @@ export class CloudAgent extends BaseAgent {
       })
 
       await this.log(context, 'Storage security test completed', 'completed')
+      
+      if (storageTool) {
+        await this.logToolUsage(context, storageTool, 'completed', { result: 'Storage security scan completed' })
+      }
     } catch (error) {
       await this.log(context, `Storage security test error: ${error}`, 'error')
     }

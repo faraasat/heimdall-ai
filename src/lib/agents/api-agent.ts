@@ -24,6 +24,12 @@ export class APIAgent extends BaseAgent {
   }
 
   private async testAuthentication(context: AgentContext, target: string) {
+    const tools = this.getToolsForAgent('api')
+    const authTool = tools.find(t => t.features.includes('Auth Testing') || t.name.includes('JWT'))
+    
+    if (authTool) {
+      await this.logToolUsage(context, authTool, 'starting', { test: 'authentication' })
+    }
     await this.log(context, 'Testing API authentication', 'running')
 
     try {
@@ -49,12 +55,22 @@ export class APIAgent extends BaseAgent {
       }
 
       await this.log(context, 'Authentication test completed', 'completed')
+      
+      if (authTool) {
+        await this.logToolUsage(context, authTool, 'completed', { result: 'Authentication scan completed' })
+      }
     } catch (error) {
       await this.log(context, `Authentication test error: ${error}`, 'error')
     }
   }
 
   private async testRateLimiting(context: AgentContext, target: string) {
+    const tools = this.getToolsForAgent('api')
+    const rateLimitTool = tools.find(t => t.name.includes('Load Test') || t.name.includes('Artillery') || t.name === 'Supertest')
+    
+    if (rateLimitTool) {
+      await this.logToolUsage(context, rateLimitTool, 'starting', { requests: 5 })
+    }
     await this.log(context, 'Testing rate limiting', 'running')
 
     try {
@@ -85,12 +101,24 @@ export class APIAgent extends BaseAgent {
       }
 
       await this.log(context, 'Rate limiting test completed', 'completed')
+      
+      if (rateLimitTool) {
+        await this.logToolUsage(context, rateLimitTool, 'completed', { 
+          result: rateLimitHeaders ? 'Rate limiting detected' : 'No rate limiting found'
+        })
+      }
     } catch (error) {
       await this.log(context, `Rate limiting test error: ${error}`, 'error')
     }
   }
 
   private async testInputValidation(context: AgentContext, target: string) {
+    const tools = this.getToolsForAgent('api')
+    const validationTool = tools.find(t => t.name.includes('OpenAPI') || t.name === 'Supertest' || t.name === 'Frisby')
+    
+    if (validationTool) {
+      await this.logToolUsage(context, validationTool, 'starting', { payloads: 5 })
+    }
     await this.log(context, 'Testing input validation', 'running')
 
     try {
@@ -177,9 +205,22 @@ export class APIAgent extends BaseAgent {
     }
 
     await this.log(context, 'Input validation test completed', 'completed')
+    
+    if (validationTool) {
+      await this.logToolUsage(context, validationTool, 'completed', { 
+        result: `Tested ${payloads.length} payload types`,
+        vulnerableToPayloads: vulnerableToPayloads.length > 0 ? vulnerableToPayloads : 'none'
+      })
+    }
   }
 
   private async testAPIEndpoints(context: AgentContext, target: string) {
+    const tools = this.getToolsForAgent('api')
+    const enumTool = tools.find(t => t.name.includes('GraphQL Inspector') || t.features.includes('API Discovery'))
+    
+    if (enumTool) {
+      await this.logToolUsage(context, enumTool, 'starting', { endpoints: commonEndpoints.length })
+    }
     await this.log(context, 'Testing common API endpoints', 'running')
 
     const commonEndpoints = [

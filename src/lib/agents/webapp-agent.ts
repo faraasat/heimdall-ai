@@ -33,6 +33,12 @@ export class WebAppAgent extends BaseAgent {
   }
 
   private async testSecurityHeaders(context: AgentContext, url: string) {
+    const tools = this.getToolsForAgent('webapp')
+    const headerTool = tools.find(t => t.name === 'Axios' || t.features.includes('Header Analysis'))
+    
+    if (headerTool) {
+      await this.logToolUsage(context, headerTool, 'starting', { test: 'security-headers' })
+    }
     await this.log(context, 'Checking security headers and SSL/TLS configuration', 'running')
 
     try {
@@ -139,12 +145,25 @@ export class WebAppAgent extends BaseAgent {
       }
 
       await this.log(context, `Security headers check completed. Missing: ${missingHeaders.length}`, 'completed')
+      
+      if (headerTool) {
+        await this.logToolUsage(context, headerTool, 'completed', { 
+          result: `${missingHeaders.length} missing security headers`,
+          missingHeaders 
+        })
+      }
     } catch (error) {
       await this.log(context, `Security headers check error: ${error}`, 'error')
     }
   }
 
   private async testSQLInjection(context: AgentContext, url: string) {
+    const tools = this.getToolsForAgent('webapp')
+    const sqlTool = tools.find(t => t.name.includes('SQL Injection') || t.features.includes('SQL Injection'))
+    
+    if (sqlTool) {
+      await this.logToolUsage(context, sqlTool, 'starting', { payloads: SQL_INJECTION_PAYLOADS.length })
+    }
     await this.log(context, 'Testing for SQL injection vulnerabilities', 'running')
 
     // Use comprehensive payload list
@@ -213,9 +232,19 @@ export class WebAppAgent extends BaseAgent {
     }
 
     await this.log(context, 'SQL injection test completed', 'completed')
+    
+    if (sqlTool) {
+      await this.logToolUsage(context, sqlTool, 'completed', { result: 'Scan completed' })
+    }
   }
 
   private async testXSS(context: AgentContext, url: string) {
+    const tools = this.getToolsForAgent('webapp')
+    const xssTool = tools.find(t => t.name === 'XSS Tester' || t.features.includes('XSS Detection'))
+    
+    if (xssTool) {
+      await this.logToolUsage(context, xssTool, 'starting', { payloads: XSS_PAYLOADS.length })
+    }
     await this.log(context, 'Testing for Cross-Site Scripting (XSS)', 'running')
 
     try {
@@ -306,9 +335,19 @@ export class WebAppAgent extends BaseAgent {
     }
 
     await this.log(context, 'XSS test completed', 'completed')
+    
+    if (xssTool) {
+      await this.logToolUsage(context, xssTool, 'completed', { result: 'XSS scan completed' })
+    }
   }
 
   private async testCSRF(context: AgentContext, url: string) {
+    const tools = this.getToolsForAgent('webapp')
+    const csrfTool = tools.find(t => t.name === 'CSRF Tester' || t.features.includes('CSRF Detection'))
+    
+    if (csrfTool) {
+      await this.logToolUsage(context, csrfTool, 'starting', { test: 'csrf-token-validation' })
+    }
     await this.log(context, 'Testing for CSRF protection', 'running')
 
     try {
@@ -345,6 +384,10 @@ export class WebAppAgent extends BaseAgent {
       }
 
       await this.log(context, 'CSRF test completed', 'completed')
+      
+      if (csrfTool) {
+        await this.logToolUsage(context, csrfTool, 'completed', { result: 'CSRF validation completed' })
+      }
     } catch (error) {
       await this.log(context, `CSRF test error: ${error}`, 'error')
     }

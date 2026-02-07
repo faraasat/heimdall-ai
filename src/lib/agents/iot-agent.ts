@@ -21,6 +21,12 @@ export class IoTAgent extends BaseAgent {
   }
 
   private async testDeviceDiscovery(context: AgentContext) {
+    const tools = this.getToolsForAgent('iot')
+    const discoveryTool = tools.find(t => t.name === 'Nmap' || t.features.includes('Device Discovery'))
+    
+    if (discoveryTool) {
+      await this.logToolUsage(context, discoveryTool, 'starting', { phase: 'device-discovery' })
+    }
     await this.log(context, 'Discovering IoT devices', 'running')
 
     try {
@@ -44,6 +50,10 @@ export class IoTAgent extends BaseAgent {
           devices_found: devices,
         },
       })
+      
+      if (discoveryTool) {
+        await this.logToolUsage(context, discoveryTool, 'completed', { result: `${devices.length} devices found` })
+      }
     } catch (error) {
       await this.log(context, `Device discovery error: ${error}`, 'error')
     }
@@ -74,6 +84,12 @@ export class IoTAgent extends BaseAgent {
   }
 
   private async testProtocolSecurity(context: AgentContext) {
+    const tools = this.getToolsForAgent('iot')
+    const protocolTool = tools.find(t => t.name === 'MQTT Client' || t.name === 'CoAP Client')
+    
+    if (protocolTool) {
+      await this.logToolUsage(context, protocolTool, 'starting', { protocols: ['MQTT', 'CoAP', 'BLE'] })
+    }
     await this.log(context, 'Testing IoT protocol security', 'running')
 
     try {
@@ -106,12 +122,22 @@ export class IoTAgent extends BaseAgent {
       })
 
       await this.log(context, 'Protocol security test completed', 'completed')
+      
+      if (protocolTool) {
+        await this.logToolUsage(context, protocolTool, 'completed', { result: 'Protocol security scan completed' })
+      }
     } catch (error) {
       await this.log(context, `Protocol security test error: ${error}`, 'error')
     }
   }
 
   private async testFirmwareSecurity(context: AgentContext) {
+    const tools = this.getToolsForAgent('iot')
+    const firmwareTool = tools.find(t => t.name === 'Binwalk' || t.name === 'Radare2')
+    
+    if (firmwareTool) {
+      await this.logToolUsage(context, firmwareTool, 'starting', { analysis: 'firmware' })
+    }
     await this.log(context, 'Analyzing firmware security', 'running')
 
     try {
@@ -141,6 +167,10 @@ export class IoTAgent extends BaseAgent {
       })
 
       await this.log(context, 'Firmware security analysis completed', 'completed')
+      
+      if (firmwareTool) {
+        await this.logToolUsage(context, firmwareTool, 'completed', { result: 'Firmware analysis completed' })
+      }
     } catch (error) {
       await this.log(context, `Firmware security test error: ${error}`, 'error')
     }

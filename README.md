@@ -1,4 +1,4 @@
-# 🛡️ Deriv Aegis - AI-Powered Security Testing Platform
+# 🛡️ HeimdallAI — AI-Powered Autonomous Penetration Testing Platform
 
 > **Autonomous Penetration Testing with Explainable AI**
 
@@ -9,10 +9,12 @@ A comprehensive security assessment platform powered by AI agents that provides 
 ## ✨ Key Features
 
 ### 🤖 **Dual-Mode Operation**
+
 - **Agentic Mode**: AI agents autonomously execute tests, adapt to findings, and make intelligent decisions
 - **Manual Mode**: User-guided step-by-step testing with full control over techniques and targets
 
 ### 🧠 **Explainable AI (XAI)**
+
 - **Reasoning Chains**: Transparent step-by-step logic showing how vulnerabilities were identified
 - **Confidence Scoring**: Quantified certainty levels for each finding
 - **Alternative Hypotheses**: Shows other possibilities considered during analysis
@@ -22,13 +24,14 @@ A comprehensive security assessment platform powered by AI agents that provides 
 
 1. **🌐 Network Penetration** - Infrastructure testing with DNS enumeration, subdomain discovery, port scanning, and service detection
 2. **🌐 Web Application** - OWASP Top 10 testing with SQL injection, XSS, CSRF detection, robots.txt & sitemap analysis
-3. **📱 Mobile Application** - iOS/Android security with static/dynamic analysis
+3. **📱 Mobile Application** - iOS/Android security with static/dynamic analysis **[Upcoming]**
 4. **☁️ Cloud Security** - AWS/Azure/GCP infrastructure audits and compliance checks
 5. **🔌 IoT Testing** - Device security, protocol analysis, firmware review
 6. **⚙️ Configuration Review** - Security hardening and compliance auditing
 7. **🔑 API Security** - REST/GraphQL endpoint testing and authentication analysis
 
 ### 🔥 **Real-Time Monitoring**
+
 - **Live Activity Logging**: See exactly what agents are testing in real-time
 - **Progress Tracking**: Visual progress bars with phase indicators
 - **Agent Visibility**: Know which AI agent is currently working
@@ -36,6 +39,7 @@ A comprehensive security assessment platform powered by AI agents that provides 
 - **Scan Control**: Stop running scans with confirmation dialog
 
 ### 🎯 **Advanced Capabilities**
+
 - **Subdomain Enumeration**: DNS-based subdomain discovery with common wordlists
 - **Robots.txt Analysis**: Discover hidden/disallowed paths from robots.txt
 - **Sitemap Parsing**: Extract all endpoints from sitemap.xml
@@ -44,6 +48,7 @@ A comprehensive security assessment platform powered by AI agents that provides 
 - **Comprehensive Filters**: Search, filter by severity/state, real-time results
 
 ### 🎯 **Testing Approaches**
+
 - **Black Box**: No prior knowledge of the system
 - **Grey Box**: Partial knowledge with limited access
 - **White Box**: Full knowledge with source code access
@@ -53,11 +58,12 @@ A comprehensive security assessment platform powered by AI agents that provides 
 ## 🚀 Getting Started
 
 ### Prerequisites
-- Node.js 18+
+
+- Node.js 22+
 - Yarn or npm
 - Supabase account (for database)
 - Groq API key (for AI models)
-- Google AI key (optional, for Gemini models)
+- Google AI key (for Gemini models)
 
 ### Installation
 
@@ -67,12 +73,9 @@ yarn install
 
 # Set up environment variables
 cp .env.example .env.local
-# Edit .env.local with your credentials:
-# - NEXT_PUBLIC_SUPABASE_URL
-# - NEXT_PUBLIC_SUPABASE_ANON_KEY
-# - SUPABASE_SERVICE_ROLE_KEY
-# - GROQ_API_KEY
-# - GOOGLE_AI_KEY (optional)
+
+# to login supabase
+npx supabase login
 
 # Push database migrations
 npx supabase db push
@@ -96,8 +99,8 @@ UPDATE users SET role = 'admin' WHERE email = 'your-email@example.com';
 
 ## 🏗️ Project Structure
 
-```
-deriv/
+```plaintext
+heimdall-ai/
 ├── src/
 │   ├── app/
 │   │   ├── dashboard/
@@ -146,6 +149,7 @@ deriv/
 ## 🎨 Tech Stack
 
 ### Frontend
+
 - **Next.js 16 (App Router)** - React Server Components & Server Actions
 - **React 19** - Latest React features
 - **Tailwind CSS 4** - Modern utility-first styling
@@ -154,6 +158,7 @@ deriv/
 - **Lucide Icons** - Beautiful icon system
 
 ### Backend
+
 - **Next.js API Routes** - Serverless API endpoints
 - **Supabase** - PostgreSQL database with Row Level Security (RLS)
 - **Server-Sent Events (SSE)** - Real-time scan updates
@@ -161,66 +166,17 @@ deriv/
 - **Google Gemini** - Advanced AI analysis
 
 ### Security Tools
+
 - **tcp-port-used** - Port availability checking
 - **dns** - DNS resolution and enumeration
 - **axios** - HTTP client for web requests
 
 ### Design System
+
 - **Gradient Theme**: Blue-purple gradients throughout
 - **Glassmorphism**: Backdrop blur effects
 - **Animations**: Smooth transitions and pulse effects
 - **Responsive**: Mobile-first design
-- **Dark Mode**: Built-in optimized dark theme
-
----
-
-## 📈 Recent Updates
-
-### ✅ Latest Features (v0.2.0)
-- ✅ **Stop Scan Functionality**: Cancel running scans with confirmation dialog
-- ✅ **Reports Storage Bucket**: Fixed "Bucket not found" error for PDF reports
-- ✅ **User Roles & Admin Access**: Admin users can view all scans/findings
-- ✅ **Comprehensive Settings Page**: 
-  - Profile management (name, organization, timezone)
-  - Email notifications toggle
-  - Security section (password, 2FA, API keys)
-  - Usage & quota display
-- ✅ **Findings Grouped by Target**:
-  - Toggle between "List View" and "By Target" view
-  - Collapsible target sections with severity badges
-  - Count of findings per target
-- ✅ **Enhanced Network Agent**:
-  - Subdomain enumeration via DNS bruteforce
-  - Robots.txt analysis for sensitive paths
-  - Sitemap.xml parsing for endpoint discovery
-- ✅ **Advanced Filtering**:
-  - Real-time search across findings
-  - Multi-select severity filters
-  - State filters (new, confirmed, remediated, etc.)
-
----
-
-## 🔧 Troubleshooting
-
-### "Bucket not found" error
-Run migrations to create the reports bucket:
-```bash
-npx supabase db push
-```
-
-### Admin access not working
-Grant admin role in Supabase SQL editor:
-```sql
-UPDATE users SET role = 'admin' WHERE email = 'your-email@example.com';
-```
-
-### Scan not starting
-Check API keys in `.env.local`:
-- `GROQ_API_KEY` (required)
-- `GOOGLE_AI_KEY` (optional)
-
-### Real-time updates not showing
-Ensure SSE connection is active. Check browser console for errors.
 
 ---
 

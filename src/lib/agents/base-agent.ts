@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from 'uuid'
 import type { Finding, ScanType, AgentActivityLog, FindingSeverity, FindingState } from '../types/database'
 import { analyzeVulnerability, generateRemediation } from '../ai/security-analysis'
+import { getToolsForScanType, type SecurityTool } from '../tools/security-tools'
 
 export interface AgentContext {
   scanId: string
@@ -34,6 +35,49 @@ export abstract class BaseAgent {
       details: metadata,
       timestamp: new Date().toISOString(),
     })
+  }
+
+  protected async logToolUsage(
+    context: AgentContext,
+    tool: SecurityTool | string,
+    phase: 'starting' | 'running' | 'completed' | 'error',
+    details: Record<string, any> = {}
+  ) {
+    const toolName = typeof tool === 'string' ? tool : tool.name
+    const toolPackage = typeof tool === 'string' ? undefined : tool.package
+    
+    let message = ''
+    switch (phase) {
+      case 'starting':
+        message = `🔧 Initializing ${toolName}...`
+        break
+      case 'running':
+        message = `⚡ ${toolName}: ${details.action || 'Executing'}`
+        break
+      case 'completed':
+        message = `✅ ${toolName}: ${details.result || 'Completed successfully'}`
+        break
+      case 'error':
+        message = `❌ ${toolName}: ${details.error || 'Failed'}`
+        break
+    }
+
+    await context.onLog({
+      agent_type: this.name,
+      message,
+      status: phase === 'error' ? 'error' : phase === 'completed' ? 'completed' : 'running',
+      details: {
+        tool: toolName,
+        package: toolPackage,
+        phase,
+        ...details,
+      },
+      timestamp: new Date().toISOString(),
+    })
+  }
+
+  protected getToolsForAgent(scanType: string, excludeDangerous: boolean = false): SecurityTool[] {
+    return getToolsForScanType(scanType as any, excludeDangerous)
   }
 
   protected async reportFinding(

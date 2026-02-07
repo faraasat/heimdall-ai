@@ -346,9 +346,9 @@ export default async function DashboardPage() {
                             <Badge
                               key={type}
                               variant="outline"
-                              className="text-xs border-gray-700"
+                              className="text-xs border-white"
                             >
-                              {type}
+                              <span className="text-white">{type}</span>
                             </Badge>
                           ))}
                         </div>

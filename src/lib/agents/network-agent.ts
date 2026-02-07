@@ -43,16 +43,28 @@ export class NetworkAgent extends BaseAgent {
   }
 
   private async performDNSEnumeration(context: AgentContext, target: string) {
+    const tools = this.getToolsForAgent('network')
+    const dnsTools = tools.filter(t => t.name.includes('DNS') || t.name.includes('WHOIS'))
+    
+    if (dnsTools.length > 0) {
+      await this.logToolUsage(context, dnsTools[0], 'starting')
+    }
     await this.log(context, 'Enumerating DNS records', 'running')
 
     try {
       // Try to resolve A records
+      if (dnsTools.length > 0) {
+        await this.logToolUsage(context, dnsTools[0], 'running', { action: 'Resolving A records' })
+      }
       const addresses = await resolveDns(target, 'A').catch(() => [])
       
       if (addresses.length > 0) {
         await this.log(context, `Found ${addresses.length} A records`, 'completed', {
           addresses,
         })
+        if (dnsTools.length > 0) {
+          await this.logToolUsage(context, dnsTools[0], 'completed', { result: `${addresses.length} A records found` })
+        }
       }
 
       // Check for common subdomains (demo purposes)
@@ -84,6 +96,12 @@ export class NetworkAgent extends BaseAgent {
   }
 
   private async performPortScanning(context: AgentContext, target: string) {
+    const tools = this.getToolsForAgent('network')
+    const portScanTool = tools.find(t => t.name.includes('Port Scanner') || t.name === 'Nmap')
+    
+    if (portScanTool) {
+      await this.logToolUsage(context, portScanTool, 'starting', { target, ports: 'common' })
+    }
     await this.log(context, 'Scanning common ports', 'running')
 
     // Real port scan of common ports
@@ -139,9 +157,22 @@ export class NetworkAgent extends BaseAgent {
     }
 
     await this.log(context, `Found ${openPorts.length} open ports`, 'completed')
+    
+    if (portScanTool) {
+      await this.logToolUsage(context, portScanTool, 'completed', { 
+        result: `${openPorts.length} open ports detected`,
+        openPorts: openPorts.map(p => `${p.port}/${p.service}`)
+      })
+    }
   }
 
   private async performServiceDetection(context: AgentContext, target: string) {
+    const tools = this.getToolsForAgent('network')
+    const serviceTool = tools.find(t => t.name === 'Nmap' || t.features.includes('Service Detection'))
+    
+    if (serviceTool) {
+      await this.logToolUsage(context, serviceTool, 'starting', { phase: 'service-detection' })
+    }
     await this.log(context, 'Detecting service versions and security configurations', 'running')
 
     // Real service detection via HTTP headers and banner grabbing
