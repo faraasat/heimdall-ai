@@ -37,16 +37,16 @@ const scanTypes = [
     subtypes: ['Black Box', 'Grey Box', 'White Box'],
   },
   {
-    id: 'mobile' as ScanType,
-    name: 'Mobile Application',
-    description: 'iOS and Android application security testing',
+    id: 'api' as ScanType,
+    name: 'API Security',
+    description: 'Test APIs for auth, access control, and data exposure',
     icon: Cpu,
-    emoji: '📱',
+    emoji: '🔗',
     color: 'from-green-500 to-emerald-500',
     borderColor: 'border-green-500/30',
     hoverBorder: 'hover:border-green-400/60',
-    features: ['Static Analysis', 'Dynamic Analysis', 'API Testing', 'Data Storage'],
-    subtypes: ['iOS', 'Android', 'Hybrid'],
+    features: ['Auth Checks', 'Broken Access Control', 'Rate Limits', 'Data Exposure'],
+    subtypes: ['REST', 'GraphQL', 'gRPC'],
   },
   {
     id: 'cloud' as ScanType,
@@ -91,6 +91,8 @@ export default function NewScanPage() {
   const [selectedTypes, setSelectedTypes] = useState<ScanType[]>([])
   const [scanMode, setScanMode] = useState<'agentic' | 'manual'>('agentic')
   const [approach, setApproach] = useState<'blackbox' | 'greybox' | 'whitebox'>('blackbox')
+  const [intensity, setIntensity] = useState<'light' | 'normal' | 'aggressive'>('normal')
+  const [timeoutSeconds, setTimeoutSeconds] = useState<number>(900)
   const [scanName, setScanName] = useState("")
   const [target, setTarget] = useState("")
   const [naturalLanguage, setNaturalLanguage] = useState("")
@@ -132,6 +134,8 @@ export default function NewScanPage() {
           target,
           scan_mode: scanMode,
           testing_approach: approach,
+          intensity,
+          timeout_seconds: timeoutSeconds,
           scan_types: selectedTypes,
           scan_type: selectedTypes[0], // For backward compatibility
           natural_language: naturalLanguage || undefined,
@@ -337,6 +341,34 @@ export default function NewScanPage() {
                   required
                 />
                 <p className="text-xs text-gray-500 mt-1">Enter the target domain, URL, or IP address to scan</p>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="intensity" className="text-gray-300">Intensity</Label>
+                  <select
+                    id="intensity"
+                    value={intensity}
+                    onChange={(e) => setIntensity(e.target.value as any)}
+                    className="mt-2 w-full rounded-md bg-gray-800/50 border border-gray-700 text-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500"
+                  >
+                    <option value="light">Light</option>
+                    <option value="normal">Normal</option>
+                    <option value="aggressive">Aggressive</option>
+                  </select>
+                </div>
+                <div>
+                  <Label htmlFor="timeout" className="text-gray-300">Timeout (seconds)</Label>
+                  <Input
+                    id="timeout"
+                    type="number"
+                    min={60}
+                    value={timeoutSeconds}
+                    onChange={(e) => setTimeoutSeconds(Number(e.target.value || 0))}
+                    className="mt-2 bg-gray-800/50 border-gray-700 text-white placeholder:text-gray-500 focus:border-blue-500"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Stops the scan after this time limit</p>
+                </div>
               </div>
             </CardContent>
           </Card>

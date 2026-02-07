@@ -8,7 +8,6 @@ import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Shield, Activity, AlertTriangle, CheckCircle, Clock, ArrowLeft, Download, Zap, TrendingUp } from "lucide-react"
 import Link from "next/link"
-import ScanLogging from "@/components/scans/ScanLogging"
 import type { Scan, Finding, AgentActivityLog } from "@/lib/types/database"
 
 export default function ScanDetailPage() {
@@ -319,20 +318,6 @@ export default function ScanDetailPage() {
         </div>
 
         <div className="grid md:grid-cols-2 gap-6">
-          {/* Real-time Logging */}
-          {scan.status === 'running' && (
-            <div className="md:col-span-2">
-              <ScanLogging 
-                scanId={scanId} 
-                isActive={scan.status === 'running'}
-                onComplete={() => {
-                  // Refresh scan data when complete
-                  router.refresh()
-                }}
-              />
-            </div>
-          )}
-
           {/* Activity Feed */}
           <Card className="bg-gradient-to-br from-gray-900/50 to-gray-800/30 border border-gray-700/50 backdrop-blur-sm">
             <CardHeader>

@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { v4 as uuidv4 } from 'uuid'
 import { getOrchestrator } from '@/lib/agents/orchestrator'
 import type { ScanType } from '@/lib/types/database'
 
@@ -15,11 +14,41 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { target, scan_type, configuration = {} } = await request.json()
+    const body = await request.json()
+    const {
+      target: targetRaw,
+      name: nameRaw,
+      scan_types: scanTypesRaw,
+      scan_type: scanTypeLegacy,
+      configuration: configurationRaw,
+      ...rest
+    } = body || {}
 
-    if (!target || !scan_type) {
+    const target = typeof targetRaw === 'string' ? targetRaw.trim() : ''
+    const name = typeof nameRaw === 'string' && nameRaw.trim().length > 0
+      ? nameRaw.trim()
+      : `Scan ${new Date().toISOString()}`
+
+    const requestedScanTypes = Array.isArray(scanTypesRaw)
+      ? scanTypesRaw
+      : scanTypeLegacy
+        ? [scanTypeLegacy]
+        : []
+
+    const validScanTypes = new Set<ScanType>(['network', 'webapp', 'api', 'cloud', 'iot', 'config'])
+    const scan_types: ScanType[] = requestedScanTypes
+      .filter((t: unknown) => typeof t === 'string')
+      .map((t: string) => t.trim())
+      .filter((t: string): t is ScanType => validScanTypes.has(t as ScanType))
+
+    const configuration = {
+      ...(typeof configurationRaw === 'object' && configurationRaw ? configurationRaw : {}),
+      ...rest,
+    }
+
+    if (!target || scan_types.length === 0) {
       return NextResponse.json(
-        { error: 'Target and scan_type are required' },
+        { error: 'Target and at least one valid scan type are required' },
         { status: 400 }
       )
     }
@@ -29,10 +58,12 @@ export async function POST(request: NextRequest) {
       .from('scans')
       .insert({
         user_id: user.id,
+        name,
         target,
-        scan_type: scan_type as ScanType,
+        scan_types,
         status: 'pending',
         configuration,
+        findings_count: 0,
       })
       .select()
       .single()
@@ -43,7 +74,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Start scan execution in background (in production, would use a queue)
-    executeScan(scan.id, scan_type, target, configuration, user.id).catch(console.error)
+    executeScan(scan.id, scan_types, target, configuration, user.id).catch(console.error)
 
     return NextResponse.json({ scan })
   } catch (error) {
@@ -90,7 +121,7 @@ export async function GET(request: NextRequest) {
 // Background scan execution
 async function executeScan(
   scanId: string,
-  scanType: ScanType,
+  scanTypes: ScanType[],
   target: string,
   config: Record<string, any>,
   userId: string
@@ -111,7 +142,7 @@ async function executeScan(
       .eq('id', scanId)
 
     // Execute scan with callbacks
-    await orchestrator.executeScan(scanId, scanType, target, config, {
+    await orchestrator.executeScanTypes(scanId, scanTypes, target, config, {
       onLog: async (log) => {
         await supabase.from('agent_activity_logs').insert({
           scan_id: scanId,
@@ -130,6 +161,15 @@ async function executeScan(
         if (status === 'completed' || status === 'failed') {
           updates.completed_at = new Date().toISOString()
           updates.duration_seconds = Math.floor((Date.now() - startTime) / 1000)
+
+          const { count } = await supabase
+            .from('findings')
+            .select('id', { count: 'exact', head: true })
+            .eq('scan_id', scanId)
+
+          if (typeof count === 'number') {
+            updates.findings_count = count
+          }
         }
 
         await supabase
