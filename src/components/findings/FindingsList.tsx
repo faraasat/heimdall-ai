@@ -97,7 +97,108 @@ export default function FindingsList({ initialFindings }: FindingsListProps) {
       medium: findings.filter(f => f.severity === 'medium').length,
       low: findings.filter(f => f.severity === 'low').length,
     }
-  }& View Toggle */}
+  }
+
+  function getSeverityBadge(severity: string) {
+    const colors: Record<string, string> = {
+      critical: "bg-gradient-to-r from-red-500/30 to-red-600/20 text-red-200 border-red-500/50",
+      high: "bg-gradient-to-r from-orange-500/30 to-orange-600/20 text-orange-200 border-orange-500/50",
+      medium: "bg-gradient-to-r from-yellow-500/30 to-yellow-600/20 text-yellow-200 border-yellow-500/50",
+      low: "bg-gradient-to-r from-blue-500/30 to-blue-600/20 text-blue-200 border-blue-500/50",
+      info: "bg-gradient-to-r from-gray-500/30 to-gray-600/20 text-gray-200 border-gray-500/50"
+    }
+
+    return (
+      <Badge className={`${colors[severity] || colors.info} border px-3 py-1`}>
+        {severity.toUpperCase()}
+      </Badge>
+    )
+  }
+
+  function getStateBadge(state: string) {
+    const colors: Record<string, string> = {
+      new: "bg-yellow-500/20 text-yellow-300 border-yellow-500/50",
+      confirmed: "bg-orange-500/20 text-orange-300 border-orange-500/50",
+      false_positive: "bg-gray-500/20 text-gray-300 border-gray-500/50",
+      remediated: "bg-green-500/20 text-green-300 border-green-500/50",
+      accepted_risk: "bg-blue-500/20 text-blue-300 border-blue-500/50"
+    }
+
+    return (
+      <Badge className={`${colors[state] || colors.new} border px-2 py-0.5 text-xs`}>
+        {state.replace('_', ' ').toUpperCase()}
+      </Badge>
+    )
+  }
+
+  function renderFinding(finding: Finding, index: number) {
+    return (
+      <Link key={finding.id} href={`/dashboard/findings/${finding.id}`}>
+        <div 
+          className="p-5 bg-gray-800/40 border border-gray-700/50 rounded-lg hover:border-red-500/50 hover:scale-[1.02] transition-all cursor-pointer"
+          style={{ animationDelay: `${index * 30}ms` }}
+        >
+          <div className="flex items-start justify-between mb-3">
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-2 flex-wrap">
+                <h3 className="font-semibold text-white text-lg">{finding.title}</h3>
+                {getSeverityBadge(finding.severity)}
+                {finding.ai_reasoning?.confidence_score && (
+                  <Badge variant="outline" className="text-xs border-blue-500/30 text-blue-300">
+                    {Math.round(finding.ai_reasoning.confidence_score * 100)}% AI confidence
+                  </Badge>
+                )}
+              </div>
+              <p className="text-sm text-gray-300 mb-3 leading-relaxed">{finding.description}</p>
+              {finding.scan && !groupByTarget && (
+                <div className="flex flex-wrap gap-3 text-xs text-gray-400 mb-2">
+                  <span className="flex items-center gap-1">
+                    <Shield className="h-3 w-3" />
+                    <span className="font-medium">Scan:</span> {finding.scan.name}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Activity className="h-3 w-3" />
+                    <span className="font-medium">Target:</span> {finding.scan.target}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Zap className="h-3 w-3" />
+                    <span className="font-medium">Agent:</span> {finding.discovered_by_agent || 'Unknown'}
+                  </span>
+                </div>
+              )}
+              {finding.scan && groupByTarget && (
+                <div className="flex flex-wrap gap-3 text-xs text-gray-400 mb-2">
+                  <span className="flex items-center gap-1">
+                    <Shield className="h-3 w-3" />
+                    <span className="font-medium">Scan:</span> {finding.scan.name}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Zap className="h-3 w-3" />
+                    <span className="font-medium">Agent:</span> {finding.discovered_by_agent || 'Unknown'}
+                  </span>
+                </div>
+              )}
+              {finding.affected_asset && (
+                <p className="text-xs text-gray-500 font-mono bg-gray-900/50 px-2 py-1 rounded border border-gray-700/30 inline-block">
+                  📍 {finding.affected_asset}
+                </p>
+              )}
+            </div>
+            <div className="flex flex-col items-end gap-2">
+              {getStateBadge(finding.state || 'new')}
+              <ArrowRight className="h-4 w-4 text-gray-500" />
+            </div>
+          </div>
+        </div>
+      </Link>
+    )
+  }
+
+  return (
+    <>
+      <FindingsFilters onFilterChange={setFilters} />
+
+      {/* Results Summary & View Toggle */}
       <div className="mb-4 flex items-center justify-between">
         <p className="text-sm text-gray-400">
           Showing <span className="text-white font-semibold">{filteredFindings.length}</span> of{' '}
@@ -331,17 +432,6 @@ export default function FindingsList({ initialFindings }: FindingsListProps) {
       new: "bg-yellow-500/20 text-yellow-300 border-yellow-500/50",
       confirmed: "bg-orange-500/20 text-orange-300 border-orange-500/50",
       false_positive: "bg-gray-500/20 text-gray-300 border-gray-500/50",
-      remediated: "bg-green-500/20 text-green-300 border-green-500/50",
-      accepted_risk: "bg-blue-500/20 text-blue-300 border-blue-500/50"
-    }
-
-    return (
-      <Badge className={`${colors[state] || colors.new} border px-2 py-0.5 text-xs`}>
-        {state.replace('_', ' ').toUpperCase()}
-      </Badge>
-    )
-  }
-}r-gray-500/50",
       remediated: "bg-green-500/20 text-green-300 border-green-500/50",
       accepted_risk: "bg-blue-500/20 text-blue-300 border-blue-500/50"
     }

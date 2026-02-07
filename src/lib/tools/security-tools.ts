@@ -7,6 +7,7 @@ export interface SecurityTool {
   description: string
   category: string
   isDangerous: boolean // Tools that can cause DoS or service disruption
+  riskDescription?: string // Detailed risk explanation
   scanTypes: string[] // Which scan types can use this tool
   features: string[]
 }
@@ -57,6 +58,52 @@ export const networkTools: SecurityTool[] = [
     isDangerous: false,
     scanTypes: ['network'],
     features: ['Port Checking', 'Connection Testing', 'Service Discovery']
+  },
+  {
+    name: 'Packet Capture',
+    package: 'node-pcap',
+    description: 'Network packet capture and analysis',
+    category: 'network',
+    isDangerous: false,
+    scanTypes: ['network'],
+    features: ['Packet Sniffing', 'Protocol Analysis', 'Traffic Monitoring']
+  },
+  {
+    name: 'Raw Socket',
+    package: 'raw-socket',
+    description: 'Raw socket support for packet crafting',
+    category: 'network',
+    isDangerous: true,
+    riskDescription: 'Can be used for packet manipulation and potentially disruptive network attacks',
+    scanTypes: ['network'],
+    features: ['Packet Crafting', 'Custom Protocol Testing', 'Low-Level Network Access']
+  },
+  {
+    name: 'FTP Client',
+    package: 'ftp',
+    description: 'FTP protocol testing',
+    category: 'network',
+    isDangerous: false,
+    scanTypes: ['network'],
+    features: ['FTP Enumeration', 'Anonymous Access', 'Version Detection']
+  },
+  {
+    name: 'SNMP Client',
+    package: 'snmp',
+    description: 'SNMP protocol implementation',
+    category: 'network',
+    isDangerous: false,
+    scanTypes: ['network'],
+    features: ['SNMP Enumeration', 'Community String Testing', 'MIB Walking']
+  },
+  {
+    name: 'LDAP Client',
+    package: 'ldapjs',
+    description: 'LDAP directory testing',
+    category: 'network',
+    isDangerous: false,
+    scanTypes: ['network'],
+    features: ['LDAP Injection', 'Anonymous Bind', 'Directory Enumeration']
   }
 ]
 
@@ -85,6 +132,185 @@ export const webAppTools: SecurityTool[] = [
     package: 'cheerio',
     description: 'jQuery-like HTML parsing for content analysis',
     category: 'webapp',
+    isDangerous: false,
+    scanTypes: ['webapp'],
+    features: ['HTML Parsing', 'Form Discovery', 'Link Extraction', 'Hidden Fields']
+  },
+  {
+    name: 'JWT Tool',
+    package: 'jsonwebtoken',
+    description: 'JWT token testing and manipulation',
+    category: 'webapp',
+    isDangerous: false,
+    scanTypes: ['webapp', 'api'],
+    features: ['Token Decode', 'Signature Verification', 'Algorithm Confusion', 'Expiration Checks']
+  },
+  {
+    name: 'SQL Injection Tester',
+    package: 'sql-injection-test',
+    description: 'SQL injection vulnerability testing',
+    category: 'webapp',
+    isDangerous: true, // Can disrupt database
+    riskDescription: 'Can corrupt or delete database data if not properly controlled',
+    scanTypes: ['webapp'],
+    features: ['Union-based SQLi', 'Blind SQLi', 'Time-based SQLi', 'Error-based SQLi']
+  },
+  {
+    name: 'XSS Tester',
+    package: 'xss',
+    description: 'XSS testing and payload generation',
+    category: 'webapp',
+    isDangerous: false,
+    scanTypes: ['webapp'],
+    features: ['Reflected XSS', 'Stored XSS', 'DOM XSS', 'Payload Generation']
+  },
+  {
+    name: 'CSRF Tester',
+    package: 'csrf',
+    description: 'CSRF testing utilities',
+    category: 'webapp',
+    isDangerous: false,
+    scanTypes: ['webapp'],
+    features: ['Token Bypass', 'CSRF Detection', 'Referer Testing']
+  },
+  {
+    name: 'SSRF Tester',
+    package: 'ssrf',
+    description: 'Server-Side Request Forgery testing',
+    category: 'webapp',
+    isDangerous: true,
+    riskDescription: 'Can access internal systems and potentially expose sensitive data',
+    scanTypes: ['webapp'],
+    features: ['SSRF Detection', 'Internal Port Scanning', 'Cloud Metadata Access']
+  },
+  {
+    name: 'XXE Tester',
+    package: 'xxe',
+    description: 'XXE (XML External Entity) vulnerability testing',
+    category: 'webapp',
+    isDangerous: true,
+    riskDescription: 'Can read sensitive files and potentially cause DoS',
+    scanTypes: ['webapp'],
+    features: ['XXE Detection', 'File Reading', 'DTD Exploitation']
+  },
+  {
+    name: 'Command Injection Tester',
+    package: 'command-injection',
+    description: 'Command injection testing',
+    category: 'webapp',
+    isDangerous: true,
+    riskDescription: 'Can execute arbitrary commands on the target system',
+    scanTypes: ['webapp'],
+    features: ['OS Command Injection', 'Blind Command Injection', 'Out-of-Band Detection']
+  },
+  {
+    name: 'Playwright',
+    package: 'playwright',
+    description: 'Cross-browser automation',
+    category: 'webapp',
+    isDangerous: false,
+    scanTypes: ['webapp'],
+    features: ['Multi-Browser Testing', 'Network Interception', 'Mobile Emulation']
+  },
+  {
+    name: 'OAuth2 Tester',
+    package: 'oauth2-test',
+    description: 'OAuth 2.0 security testing',
+    category: 'webapp',
+    isDangerous: false,
+    scanTypes: ['webapp', 'api'],
+    features: ['Token Leak Detection', 'CSRF in OAuth', 'Redirect URI Validation
+// Web Application Testing Tools
+export const webAppTools: SecurityTool[] = [
+  {
+    name: 'Puppeteer',
+    package: 'puppeteer',
+    description: 'Headless browser automation for web testing',
+    category: 'webapp',
+    isDangerous: false,
+    scanTypes: ['webapp', 'api'],
+    features: ['DOM Crawling', 'XSS Testing', 'CSRF Detection', 'Session Management']
+  },
+  {
+    name: 'Axios',
+    package: 'axios',
+    description: 'HTTP client for API and web requests',
+    category: 'webapp',
+    isDangerous: false,
+    riskDescription: 'Can cause service disruption and downtime',
+    scanTypes: ['api'],
+    features: ['Concurrent Requests', 'Rate Testing', 'Throughput Analysis', 'Latency Checks']
+  },
+  {
+    name: 'Artillery',
+    package: 'artillery',
+    description: 'Load testing and performance testing',
+    category: 'api',
+    isDangerous: true,
+    riskDescription: 'High load can overwhelm services and cause outages',
+    scanTypes: ['api', 'webapp'],
+    features: ['Scenario Testing', 'WebSocket Testing', 'Performance Metrics']
+  },
+  {
+    name: 'Autocannon',
+    package: 'autocannon',
+    description: 'HTTP/1.1 benchmarking tool',
+    category: 'api',
+    isDangerous: true,
+    riskDescription: 'Can generate significant load and cause service disruption',
+    scanTypes: ['api', 'webapp'],
+    features: ['High-Speed Requests', 'Pipeline Testing', 'Keep-Alive Testing']
+  },
+  {
+    name: 'JWT Cracker',
+    package: 'jwt-cracker',
+    description: 'JWT token cracking',
+    category: 'api',
+    isDangerous: false,
+    scanTypes: ['api', 'webapp'],
+    features: ['Weak Secret Detection', 'Brute Force', 'Algorithm Confusion']
+  },
+  {
+    name: 'GraphQL Security Suite',
+    package: 'graphql-security',
+    description: 'GraphQL security testing suite',
+    category: 'api',
+    isDangerous: false,
+    scanTypes: ['api'],
+    features: ['Injection Testing', 'Batching Attacks', 'Depth Limit Bypas']
+  },
+  {,
+  {
+    name: 'Checkov',
+    package: 'checkov',
+    description: 'Infrastructure as Code security scanning',
+    category: 'cloud',
+    isDangerous: false,
+    scanTypes: ['cloud'],
+    features: ['Terraform Scanning', 'CloudFormation', 'Kubernetes Manifests', 'Policy Violations']
+  },
+  {
+    name: 'Trivy Scanner',
+    package: 'trivy',
+    description: 'Container vulnerability scanner',
+    category: 'cloud',
+    isDangerous: false,
+    scanTypes: ['cloud'],
+    features: ['CVE Detection', 'Misconfiguration', 'Secret Scanning', 'License Detection']
+  }
+    name: 'Cheerio',
+    package: 'cheerio',
+    description: 'jQuery-like HTML parsing for content analysis',
+   ,
+  {
+    name: 'Kube-Hunter',
+    package: 'kube-hunter',
+    description: 'Kubernetes security testing',
+    category: 'cloud',
+    isDangerous: false,
+    scanTypes: ['cloud'],
+    features: ['Cluster Scanning', 'API Server Testing', 'etcd Exposure', 'Dashboard Access']
+  } category: 'webapp',
     isDangerous: false,
     scanTypes: ['webapp'],
     features: ['HTML Parsing', 'Form Discovery', 'Link Extraction', 'Hidden Fields']
@@ -173,7 +399,97 @@ export const cloudTools: SecurityTool[] = [
     name: 'Google Cloud',
     package: '@google-cloud/resource-manager',
     description: 'Google Cloud Platform SDK',
-    category: 'cloud',
+   ,
+  {
+    name: 'Zigbee Utilities',
+    package: 'zigbee',
+    description: 'Zigbee protocol utilities',
+    category: 'iot',
+    isDangerous: false,
+    scanTypes: ['iot'],
+    features: ['Network Scanning', 'Device Enumeration', 'Key Extraction']
+  },
+  {
+    name: 'Modbus Client',
+    package: 'modbus',
+    description: 'Modbus protocol testing',
+    category: 'iot',
+    isDangerous: false,
+    scanTypes: ['iot'],
+    features: ['Register Reading', 'Coil Testing', 'Function Code Fuzzing']
+  },
+  {
+    name: 'Binwalk',
+    package: 'binwalk',
+    description: 'Firmware analysis tool',
+ 
+
+// Password Attack Tools
+export const passwordTools: SecurityTool[] = [
+  {
+    name: 'Bcrypt Hash Tester',
+    package: 'bcrypt',
+    description: 'Password hash testing and benchmarking',
+    category: 'password',
+    isDangerous: false,
+    scanTypes: ['network', 'webapp'],
+    features: ['Hash Verification', 'Timing Analysis', 'Strength Testing']
+  },
+  {
+    name: 'Argon2 Hash Tester',
+    package: 'argon2',
+    description: 'Argon2 password hash testing',
+    category: 'password',
+    isDangerous: false,
+    scanTypes: ['network', 'webapp'],
+    features: ['Hash Verification', 'Memory-Hard Testing', 'Security Analysis']
+  },
+  {
+    name: 'Kerberos Tester',
+    package: 'kerberos',
+    description: 'Kerberos authentication testing',
+    category: 'password',
+    isDangerous: false,
+    scanTypes: ['network'],
+    features: ['Ticket Analysis', 'AS-REP Roasting', 'Kerberoasting']
+  }
+]
+
+// Unified Testing & Report Tools
+export const unifiedTools: SecurityTool[] = [
+  {
+    name: 'Metasploit Integration',
+    package: 'metasploit-js',
+    description: 'Metasploit framework integration',
+    category: 'unified',
+    isDangerous: true,
+    riskDescription: 'Can execute exploits that may compromise systems',
+    scanTypes: ['network', 'webapp', 'cloud'],
+    features: ['Exploit Database', 'Payload Generation', 'Post-Exploitation']
+  },
+  {
+    name: 'Nessus API',
+    package: 'nessus',
+    description: 'Tenable Nessus API client',
+    category: 'unified',
+    isDangerous: false,
+    scanTypes: ['network', 'webapp', 'cloud'],
+    features: ['Vulnerability Scanning', 'Compliance Checks', 'Report Generation']
+  },
+  {
+    name: 'OpenVAS API',
+    package: 'openvas',
+    description: 'OpenVAS vulnerability scanner API',
+    category: 'unified',
+    isDangerous: false,
+    scanTypes: ['network', 'webapp', 'cloud'],
+    features: ['CVE Detection', 'Network Scanning', 'Comprehensive Reports']
+  }
+]   category: 'iot',
+    isDangerous: false,
+    scanTypes: ['iot'],
+    features: ['Firmware Extraction', 'File System Analysis', 'Signature Detection']
+  } category: 'cloud',
     isDangerous: false,
     scanTypes: ['cloud'],
     features: ['Project Analysis', 'IAM Policies', 'GCS Security', 'Firewall Rules']
@@ -273,7 +589,9 @@ export function getToolsForScanType(scanType: string, excludeDangerous: boolean 
     ...cloudTools,
     ...containerTools,
     ...iotTools,
-    ...mobileTools
+    ...mobileTools,
+    ...passwordTools,
+    ...unifiedTools
   ]
 
   return allTools.filter(tool => {
@@ -292,7 +610,9 @@ export function getDangerousTools(): SecurityTool[] {
     ...cloudTools,
     ...containerTools,
     ...iotTools,
-    ...mobileTools
+    ...mobileTools,
+    ...passwordTools,
+    ...unifiedTools
   ].filter(tool => tool.isDangerous)
 }
 
@@ -311,5 +631,7 @@ export const allSecurityTools = {
   cloud: cloudTools,
   container: containerTools,
   iot: iotTools,
-  mobile: mobileTools
+  mobile: mobileTools,
+  password: passwordTools,
+  unified: unifiedTools
 }
